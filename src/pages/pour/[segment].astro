@@ -1,0 +1,106 @@
+---
+// Une page par cible (joueurs, streamers, télétravail). Chaque page envoie son segment
+// avec le formulaire : on mesure quelle cible s'inscrit le plus.
+import Base from '../../layouts/Base.astro';
+import Galaxy from '../../components/Galaxy.astro';
+import ModeDemo from '../../components/ModeDemo.astro';
+import Star from '../../components/Star.astro';
+import Waitlist from '../../components/Waitlist.astro';
+import { segments, site, type Segment } from '../../data/site';
+
+export function getStaticPaths() {
+  return segments.map((segment) => ({ params: { segment: segment.slug }, props: { segment } }));
+}
+
+interface Props {
+  segment: Segment;
+}
+
+const { segment } = Astro.props;
+---
+
+<Base title={`Nexum pour les ${segment.label.toLowerCase()}`} description={segment.lead}>
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div class="hero-text">
+        <p class="eyebrow">Nexum · {segment.label} · {site.stage}</p>
+        <h1>{segment.title}</h1>
+        <Star />
+        <p class="lead">{segment.lead}</p>
+        <div class="ctas">
+          <a class="btn btn-primary" href="#beta">Rejoindre la bêta</a>
+          <a class="btn btn-ghost" href="#demo">Essayer le mode</a>
+        </div>
+      </div>
+      <Galaxy initial={segment.mode} />
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Pourquoi Nexum</p>
+        <h2>Ce que ça change pour toi.</h2>
+      </div>
+      <div class="grid-3">
+        {segment.pains.map((p) => (
+          <article class="card">
+            <h3>{p.title}</h3>
+            <p class="muted">{p.text}</p>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="demo">
+    <div class="wrap split">
+      <div class="section-head">
+        <p class="eyebrow">Essaie</p>
+        <h2>Ton mode, étape par étape.</h2>
+        <p class="lead">Clique sur « Activer ». Chaque action affiche son résultat, même quand quelque chose échoue.</p>
+      </div>
+      <ModeDemo initial={segment.mode} />
+    </div>
+  </section>
+
+  <Waitlist segment={segment.slug} title="Rejoins la bêta." />
+</Base>
+
+<style>
+  .hero {
+    padding-block: clamp(48px, 8vw, 96px) clamp(72px, 10vw, 120px);
+  }
+
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 1.05fr 1fr;
+    gap: clamp(40px, 6vw, 80px);
+    align-items: center;
+  }
+
+  .hero-text {
+    display: grid;
+    gap: 26px;
+  }
+
+  .ctas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .split {
+    display: grid;
+    grid-template-columns: 0.8fr 1.2fr;
+    gap: clamp(32px, 5vw, 72px);
+    align-items: start;
+  }
+
+  @media (max-width: 900px) {
+    .hero-grid,
+    .split {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

@@ -1,0 +1,22 @@
+---
+import Base from '../layouts/Base.astro';
+import { url } from '../data/site';
+---
+
+<Base title="Page introuvable">
+  <section class="wrap lost">
+    <p class="eyebrow">Erreur 404</p>
+    <h1>Cette page ne s’est pas alignée.</h1>
+    <p class="lead">Le lien est peut-être ancien, ou la page a changé d’adresse.</p>
+    <a class="btn btn-primary" href={url()}>Retour à l’accueil</a>
+  </section>
+</Base>
+
+<style>
+  .lost {
+    display: grid;
+    gap: 24px;
+    justify-items: start;
+    padding-block: clamp(80px, 14vw, 160px);
+  }
+</style>

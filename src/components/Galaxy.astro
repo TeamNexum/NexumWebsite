@@ -1,0 +1,341 @@
+---
+// Visuel « galaxie » : explosion de pixels autour du N, avec les actions du mode choisi.
+// Repris de la direction artistique Galaxie (Nexum/docs/brand/nexum-galaxie.pdf, page 4).
+import { demoModes, url } from '../data/site';
+
+interface Props {
+  initial?: string;
+}
+
+const { initial } = Astro.props;
+const first = demoModes.find((m) => m.id === initial) ?? demoModes[0];
+---
+
+<div class="galaxy" data-galaxy data-modes={JSON.stringify(demoModes.map((m) => ({ id: m.id, name: m.name, burst: m.burst })))}>
+  <div class="stage band">
+    <canvas aria-hidden="true"></canvas>
+    <svg class="links" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+      <line x1="24" y1="22" x2="43" y2="43"></line>
+      <line x1="76" y1="22" x2="57" y2="43"></line>
+      <line x1="24" y1="78" x2="43" y2="57"></line>
+      <line x1="76" y1="78" x2="57" y2="57"></line>
+    </svg>
+    <p class="kicker"><span>Un mode, un clic</span><strong data-mode-name>{first.name}</strong></p>
+    <ul class="labels" aria-live="polite">
+      {first.burst.map((b, i) => <li class={`l${i}`}>{b}</li>)}
+    </ul>
+    <div class="core">
+      <img src={url('logo-n.svg')} alt="" width="56" height="49" />
+    </div>
+    <p class="align">Tout s’aligne.</p>
+  </div>
+
+  <div class="chips" role="group" aria-label="Choisir un mode">
+    {demoModes.map((m) => (
+      <button type="button" data-mode={m.id} aria-pressed={m.id === first.id ? 'true' : 'false'}>
+        {m.name}
+      </button>
+    ))}
+  </div>
+</div>
+
+<script>
+  type Mode = { id: string; name: string; burst: string[] };
+  type Particle = { a: number; r: number; v: number; s: number; o: number; tw: number };
+
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  for (const el of document.querySelectorAll<HTMLElement>('[data-galaxy]')) {
+    const modes: Mode[] = JSON.parse(el.dataset.modes ?? '[]');
+    const canvas = el.querySelector('canvas')!;
+    const ctx = canvas.getContext('2d')!;
+    const stage = el.querySelector<HTMLElement>('.stage')!;
+    const labels = [...el.querySelectorAll<HTMLLIElement>('.labels li')];
+    const name = el.querySelector<HTMLElement>('[data-mode-name]')!;
+    const buttons = [...el.querySelectorAll<HTMLButtonElement>('[data-mode]')];
+
+    let w = 0;
+    let h = 0;
+    let particles: Particle[] = [];
+    let visible = true;
+    let pulse = 0;
+
+    // Des rayons denses près du centre, plus une traînée horizontale comme dans la Galaxie.
+    function spawn(fromCenter = false): Particle {
+      const streak = Math.random() < 0.28;
+      const a = streak
+        ? (Math.random() < 0.5 ? 0 : Math.PI) + (Math.random() - 0.5) * 0.06
+        : Math.random() * Math.PI * 2;
+      const max = Math.hypot(w, h) / 2;
+      const r = fromCenter ? Math.random() * 20 : Math.pow(Math.random(), 2.2) * max;
+      const big = Math.random() < 0.025;
+      return {
+        a,
+        r,
+        v: 0.05 + Math.random() * 0.35,
+        s: big ? 4 + Math.random() * 8 : Math.random() < 0.3 ? 2 : 1,
+        o: 0.45 + Math.random() * 0.55,
+        tw: Math.random() * Math.PI * 2,
+      };
+    }
+
+    function resize() {
+      const rect = stage.getBoundingClientRect();
+      const dpr = Math.min(devicePixelRatio || 1, 2);
+      w = rect.width;
+      h = rect.height;
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
+      canvas.style.width = `${w}px`;
+      canvas.style.height = `${h}px`;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const count = Math.round(Math.min(5200, (w * h) / 40));
+      particles = Array.from({ length: count }, () => spawn());
+    }
+
+    function draw(t: number) {
+      ctx.clearRect(0, 0, w, h);
+      const cx = w / 2;
+      const cy = h / 2;
+      const max = Math.hypot(w, h) / 2;
+      for (const p of particles) {
+        if (!reduce) {
+          p.r += p.v * (1 + pulse * 6) * (0.4 + p.r / max);
+          if (p.r > max) Object.assign(p, spawn(true));
+        }
+        const fade = 1 - Math.min(1, p.r / max);
+        const twinkle = reduce ? 1 : 0.7 + 0.3 * Math.sin(t / 600 + p.tw);
+        ctx.globalAlpha = p.o * twinkle * (0.25 + fade * 0.75);
+        ctx.fillStyle = '#fff';
+        const x = cx + Math.cos(p.a) * p.r;
+        const y = cy + Math.sin(p.a) * p.r * 0.92;
+        ctx.fillRect(Math.round(x), Math.round(y), p.s, p.s);
+      }
+      ctx.globalAlpha = 1;
+      pulse *= 0.94;
+    }
+
+    function loop(t: number) {
+      if (visible) draw(t);
+      if (!reduce) requestAnimationFrame(loop);
+    }
+
+    function select(id: string) {
+      const mode = modes.find((m) => m.id === id);
+      if (!mode) return;
+      name.textContent = mode.name;
+      labels.forEach((li, i) => {
+        li.textContent = mode.burst[i] ?? '';
+        li.classList.remove('pop');
+        void li.offsetWidth;
+        li.classList.add('pop');
+      });
+      buttons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mode === id)));
+      pulse = 1;
+      if (reduce) draw(0);
+    }
+
+    buttons.forEach((b) => b.addEventListener('click', () => select(b.dataset.mode!)));
+    new ResizeObserver(() => {
+      resize();
+      if (reduce) draw(0);
+    }).observe(stage);
+    new IntersectionObserver(([entry]) => (visible = entry.isIntersecting)).observe(stage);
+
+    resize();
+    requestAnimationFrame(loop);
+  }
+</script>
+
+<style>
+  .galaxy {
+    display: grid;
+    gap: 16px;
+  }
+
+  .stage {
+    position: relative;
+    aspect-ratio: 1;
+    overflow: hidden;
+    border-radius: var(--r-lg);
+    border: 1px solid rgb(255 255 255 / 0.08);
+    isolation: isolate;
+  }
+
+  :global(:root[data-theme='light']) .stage {
+    border-radius: 18px;
+    border: 0;
+  }
+
+  canvas {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+  }
+
+  .links {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .links line {
+    stroke: rgb(255 255 255 / 0.45);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .kicker {
+    position: absolute;
+    top: 5.5%;
+    left: 6%;
+    display: grid;
+    gap: 2px;
+  }
+
+  .kicker span {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgb(255 255 255 / 0.6);
+  }
+
+  .kicker strong {
+    font-family: var(--font-title);
+    font-weight: var(--title-weight);
+    font-stretch: var(--title-stretch);
+    text-transform: var(--title-case);
+    font-size: clamp(22px, 4vw, 34px);
+    letter-spacing: var(--title-tracking);
+    line-height: 1.1;
+  }
+
+  .labels {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .labels li {
+    position: absolute;
+    padding: 6px 12px;
+    background: rgb(8 8 8 / 0.75);
+    border: 1px solid rgb(255 255 255 / 0.75);
+    border-radius: 8px;
+    font-family: var(--mono);
+    font-size: clamp(10px, 1.4vw, 12px);
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .l0 {
+    left: 6%;
+    top: 22%;
+  }
+
+  .l1 {
+    right: 6%;
+    top: 22%;
+  }
+
+  .l2 {
+    left: 6%;
+    bottom: 22%;
+  }
+
+  .l3 {
+    right: 6%;
+    bottom: 22%;
+  }
+
+  .l0,
+  .l1 {
+    transform: translateY(-50%);
+  }
+
+  .l2,
+  .l3 {
+    transform: translateY(50%);
+  }
+
+  .labels li:global(.pop) {
+    animation: pop 0.5s ease-out;
+  }
+
+  @keyframes pop {
+    from {
+      opacity: 0;
+      filter: blur(4px);
+    }
+  }
+
+  .core {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    display: grid;
+    place-items: center;
+    width: 22%;
+    aspect-ratio: 1;
+    transform: translate(-50%, -50%);
+    background: #080808;
+    border: 1px solid rgb(255 255 255 / 0.9);
+    border-radius: 22%;
+  }
+
+  .core img {
+    width: 52%;
+    height: auto;
+  }
+
+  .align {
+    position: absolute;
+    left: 6%;
+    bottom: 5.5%;
+    font-family: var(--font-title);
+    font-weight: 700;
+    font-stretch: var(--title-stretch);
+    font-size: clamp(14px, 2vw, 18px);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #f2f2f2;
+  }
+
+  :global(:root[data-theme='light']) .align {
+    color: #4aa8e8;
+  }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .chips button {
+    min-height: 40px;
+    padding: 0 16px;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text);
+    font: 500 14px/1 var(--font);
+    cursor: pointer;
+  }
+
+  :global(:root[data-theme='light']) .chips button {
+    border-radius: 8px;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .chips button[aria-pressed='true'] {
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    border-color: var(--btn-bg);
+  }
+</style>

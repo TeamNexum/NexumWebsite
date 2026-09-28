@@ -1,0 +1,71 @@
+---
+import Base from '../layouts/Base.astro';
+import { site, url } from '../data/site';
+---
+
+<Base title="Confidentialité" description="Ce que Nexum fait des données collectées par le formulaire de la bêta.">
+  <article class="wrap page">
+    <p class="eyebrow">Confidentialité</p>
+    <h1>Tes données, en clair.</h1>
+
+    <h2>Ce que nous collectons</h2>
+    <p>
+      Uniquement ce que tu remplis dans le formulaire de la bêta : ton e-mail, ton profil (joueur, streamer,
+      télétravail…), ta réponse libre si tu en donnes une, ton accord pour un entretien, la page d’où tu viens
+      et, le cas échéant, les paramètres de campagne (utm) du lien que tu as suivi.
+    </p>
+
+    <h2>Pourquoi</h2>
+    <p>
+      Pour te prévenir de l’ouverture de la bêta, te proposer un entretien si tu l’as accepté, et comprendre
+      quels profils s’intéressent à Nexum. Base légale : ton consentement, donné en cochant la case du formulaire.
+    </p>
+
+    <h2>Combien de temps</h2>
+    <p>
+      Jusqu’à la fin du projet EIP (été 2027) au plus tard, ou jusqu’à ce que tu demandes leur suppression.
+      Nous ne les vendons pas et ne les partageons avec personne en dehors de l’équipe.
+    </p>
+
+    <h2>Ce site</h2>
+    <p>
+      Le site ne pose pas de cookie publicitaire et n’utilise pas d’outil de mesure tiers. Ton choix de thème
+      clair ou sombre est gardé dans ton navigateur, et nulle part ailleurs. Les polices sont hébergées avec le site.
+    </p>
+
+    <h2>Tes droits</h2>
+    <p>
+      Tu peux consulter, corriger ou supprimer tes données, et retirer ton consentement à tout moment, en répondant
+      à n’importe quel e-mail de l’équipe ou en nous écrivant via <a href={site.github} rel="noopener">GitHub</a>.
+      Tu peux aussi saisir la CNIL (cnil.fr).
+    </p>
+
+    <p class="back"><a href={url()}>← Retour à l’accueil</a></p>
+  </article>
+</Base>
+
+<style>
+  .page {
+    display: grid;
+    gap: 18px;
+    max-width: 760px;
+    padding-block: clamp(56px, 9vw, 104px);
+  }
+
+  h1 {
+    margin-bottom: 24px;
+  }
+
+  h2 {
+    margin-top: 24px;
+    font-size: calc(24px * var(--title-scale));
+  }
+
+  p {
+    color: var(--text-2);
+  }
+
+  .back {
+    margin-top: 32px;
+  }
+</style>

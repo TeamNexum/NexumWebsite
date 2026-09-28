@@ -1,0 +1,335 @@
+/* Deux thèmes :
+   - sombre (défaut) : charte monochrome actuelle (Nexum/docs/brand/BRAND_GUIDELINES.md) ;
+   - clair : direction artistique « Galaxie » (Nexum/docs/brand/nexum-galaxie.pdf).
+   Le thème est posé sur <html data-theme> par un script en tête de page (Base.astro). */
+:root {
+  --bg: #080808;
+  --band: #0b0b0b;
+  --panel: #131313;
+  --panel-2: #101010;
+  --text: #f2f2f2;
+  --text-2: #acacac;
+  --text-3: #8c8c8c;
+  --line: rgb(255 255 255 / 0.07);
+  --line-strong: rgb(255 255 255 / 0.16);
+  --accent: #8c8c8c;
+  --on-band: #f2f2f2;
+  --on-band-2: #acacac;
+
+  --btn-bg: #f2f2f2;
+  --btn-text: #080808;
+  --btn-radius: 999px;
+  --btn-case: none;
+  --btn-tracking: 0;
+
+  --font: 'Inter Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-title: 'Inter Variable', system-ui, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --title-weight: 300;
+  --title-stretch: 100%;
+  --title-case: none;
+  --title-tracking: -0.035em;
+  --title-scale: 1;
+  --grain: none;
+
+  --r-sm: 12px;
+  --r-md: 16px;
+  --r-lg: 24px;
+  --max: 1120px;
+  --gutter: clamp(16px, 4vw, 40px);
+
+  color-scheme: dark;
+}
+
+:root[data-theme='light'] {
+  --bg: #f3f0ea;
+  --band: #070708;
+  --panel: #f3f0ea;
+  --panel-2: #ebe7df;
+  --text: #070708;
+  --text-2: #3f3c38;
+  --text-3: #6e6a64;
+  --line: rgb(7 7 8 / 0.14);
+  --line-strong: #070708;
+  --accent: #4aa8e8;
+  --on-band: #f3f0ea;
+  --on-band-2: #b9b4ab;
+
+  --btn-bg: #070708;
+  --btn-text: #f3f0ea;
+  --btn-radius: 0;
+  --btn-case: uppercase;
+  --btn-tracking: 0.16em;
+
+  --font: 'Archivo Variable', system-ui, sans-serif;
+  --font-title: 'Archivo Variable', system-ui, sans-serif;
+  --title-weight: 800;
+  --title-stretch: 125%;
+  --title-case: uppercase;
+  --title-tracking: 0.02em;
+  --title-scale: 0.86;
+  /* Papier granuleux */
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+
+  color-scheme: light;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+  background: var(--bg);
+}
+
+body {
+  margin: 0;
+  background: var(--grain), var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+img,
+svg,
+canvas {
+  display: block;
+  max-width: 100%;
+}
+
+a {
+  color: inherit;
+}
+
+/* Les ancres ne passent pas sous l'en-tête collant. */
+[id] {
+  scroll-margin-top: 84px;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  font-family: var(--font-title);
+  font-weight: var(--title-weight);
+  font-stretch: var(--title-stretch);
+  text-transform: var(--title-case);
+  letter-spacing: var(--title-tracking);
+  line-height: 1.05;
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: calc(clamp(40px, 7vw, 76px) * var(--title-scale));
+}
+
+h2 {
+  font-size: calc(clamp(30px, 4.4vw, 48px) * var(--title-scale));
+}
+
+h3 {
+  font-size: 19px;
+  line-height: 1.3;
+}
+
+:root:not([data-theme='light']) h3 {
+  font-weight: 400;
+  letter-spacing: -0.02em;
+}
+
+:root[data-theme='light'] h3 {
+  font-size: 15px;
+  letter-spacing: 0.06em;
+}
+
+p {
+  margin: 0;
+  text-wrap: pretty;
+}
+
+:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.wrap {
+  width: 100%;
+  max-width: var(--max);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.section {
+  padding-block: clamp(72px, 11vw, 128px);
+  border-top: 1px solid var(--line);
+}
+
+.section-head {
+  display: grid;
+  gap: 16px;
+  max-width: 700px;
+  margin-bottom: clamp(40px, 6vw, 64px);
+}
+
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.lead {
+  font-size: clamp(17px, 2vw, 19px);
+  color: var(--text-2);
+}
+
+.lead strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.muted {
+  color: var(--text-2);
+}
+
+/* Filet avec étoile, repris de la Galaxie */
+.rule {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  color: var(--accent);
+}
+
+.rule::before,
+.rule::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--line-strong);
+}
+
+.rule svg {
+  width: 18px;
+  height: 18px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 50px;
+  padding: 0 26px;
+  border-radius: var(--btn-radius);
+  border: 1px solid var(--line-strong);
+  font: 500 15px/1 var(--font);
+  text-transform: var(--btn-case);
+  letter-spacing: var(--btn-tracking);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border-color 0.2s, opacity 0.2s;
+}
+
+:root[data-theme='light'] .btn {
+  font-size: 13px;
+}
+
+.btn-primary {
+  background: var(--btn-bg);
+  color: var(--btn-text);
+  border-color: var(--btn-bg);
+}
+
+.btn-primary:hover {
+  opacity: 0.88;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text);
+}
+
+.btn-ghost:hover {
+  border-color: var(--text-2);
+}
+
+.btn[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: 28px;
+}
+
+:root[data-theme='light'] .card {
+  border-color: var(--line-strong);
+  background: transparent;
+}
+
+.grid-3 {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+
+:root[data-theme='light'] .tag {
+  border-radius: 8px;
+  color: var(--text);
+}
+
+/* Bandeau noir (en-tête, pied de page, visuels) : noir dans les deux thèmes. */
+.band {
+  background: var(--band);
+  color: var(--on-band);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

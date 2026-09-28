@@ -1,0 +1,387 @@
+---
+// Démo interactive : un mode s'exécute étape par étape, comme dans l'app.
+// Chaque étape affiche son état en texte + icône (la couleur ne porte aucune information).
+import { demoModes } from '../data/site';
+
+interface Props {
+  initial?: string;
+}
+
+const { initial } = Astro.props;
+const first = demoModes.find((m) => m.id === initial) ?? demoModes[0];
+---
+
+<div class="demo" data-demo data-modes={JSON.stringify(demoModes)}>
+  <div class="tabs" role="tablist" aria-label="Modes">
+    {demoModes.map((m) => (
+      <button type="button" role="tab" data-mode={m.id} aria-selected={m.id === first.id ? 'true' : 'false'}>
+        {m.name}
+      </button>
+    ))}
+  </div>
+
+  <div class="window">
+    <div class="titlebar" aria-hidden="true">
+      <span></span><span></span><span></span>
+      <p>Nexum</p>
+    </div>
+    <div class="body">
+      <div class="head">
+        <div>
+          <p class="eyebrow">Mode</p>
+          <h3 data-name>{first.name}</h3>
+          <p class="trigger" data-trigger>{first.trigger}</p>
+        </div>
+        <button class="btn btn-primary" type="button" data-run>Activer</button>
+      </div>
+
+      <ol class="steps" data-steps aria-live="polite">
+        {first.steps.map((s) => (
+          <li data-state="idle">
+            <span class="icon" aria-hidden="true"></span>
+            <span class="text"><strong>{s.label}</strong><small>{s.detail}</small></span>
+            <span class="state">En attente</span>
+          </li>
+        ))}
+      </ol>
+
+      <label class="fail">
+        <input type="checkbox" data-fail />
+        Simuler une panne (une lumière hors ligne)
+      </label>
+      <p class="summary" data-summary role="status"></p>
+    </div>
+  </div>
+  <p class="note">Illustration. Les étapes reprennent des actions que le prototype sait déjà faire ou qui sont prévues.</p>
+</div>
+
+<script>
+  type Step = { label: string; detail: string };
+  type Mode = { id: string; name: string; trigger: string; steps: Step[] };
+
+  const STATES = {
+    idle: 'En attente',
+    running: 'En cours…',
+    done: 'Fait',
+    failed: 'Échec',
+  } as const;
+
+  const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  for (const el of document.querySelectorAll<HTMLElement>('[data-demo]')) {
+    const modes: Mode[] = JSON.parse(el.dataset.modes ?? '[]');
+    const tabs = [...el.querySelectorAll<HTMLButtonElement>('[data-mode]')];
+    const list = el.querySelector<HTMLOListElement>('[data-steps]')!;
+    const run = el.querySelector<HTMLButtonElement>('[data-run]')!;
+    const fail = el.querySelector<HTMLInputElement>('[data-fail]')!;
+    const summary = el.querySelector<HTMLElement>('[data-summary]')!;
+    let current = modes.find((m) => tabs.find((t) => t.getAttribute('aria-selected') === 'true')?.dataset.mode === m.id) ?? modes[0];
+    let token = 0;
+
+    function setState(li: HTMLLIElement, state: keyof typeof STATES) {
+      li.dataset.state = state;
+      li.querySelector('.state')!.textContent = STATES[state];
+    }
+
+    function render(mode: Mode) {
+      token++;
+      current = mode;
+      el.querySelector('[data-name]')!.textContent = mode.name;
+      el.querySelector('[data-trigger]')!.textContent = mode.trigger;
+      list.replaceChildren(
+        ...mode.steps.map((s) => {
+          const li = document.createElement('li');
+          li.innerHTML = '<span class="icon" aria-hidden="true"></span><span class="text"><strong></strong><small></small></span><span class="state"></span>';
+          li.querySelector('strong')!.textContent = s.label;
+          li.querySelector('small')!.textContent = s.detail;
+          setState(li, 'idle');
+          return li;
+        }),
+      );
+      summary.textContent = '';
+      run.disabled = false;
+      run.textContent = 'Activer';
+    }
+
+    async function activate() {
+      const mine = ++token;
+      const items = [...list.querySelectorAll('li')];
+      items.forEach((li) => setState(li, 'idle'));
+      summary.textContent = '';
+      run.disabled = true;
+      run.textContent = 'Activation…';
+      // Si « panne » est cochée, l'étape de lumière échoue, les autres continuent.
+      const failAt = fail.checked ? current.steps.findIndex((s) => /hue|lumière/i.test(s.detail + s.label)) : -1;
+      let failed = 0;
+      for (const [i, li] of items.entries()) {
+        setState(li, 'running');
+        await wait(reduce ? 0 : 450 + Math.random() * 350);
+        if (mine !== token) return;
+        const ok = i !== failAt;
+        if (!ok) failed++;
+        setState(li, ok ? 'done' : 'failed');
+      }
+      summary.textContent = failed
+        ? `${items.length - failed} actions sur ${items.length} faites. Échec : pont Philips Hue injoignable. Tu peux relancer l’étape ou l’ignorer.`
+        : `Mode ${current.name} actif · ${items.length} actions faites.`;
+      run.disabled = false;
+      run.textContent = 'Relancer';
+    }
+
+    tabs.forEach((tab) =>
+      tab.addEventListener('click', () => {
+        tabs.forEach((t) => t.setAttribute('aria-selected', String(t === tab)));
+        const mode = modes.find((m) => m.id === tab.dataset.mode);
+        if (mode) render(mode);
+      }),
+    );
+    run.addEventListener('click', activate);
+  }
+</script>
+
+<style>
+  .demo {
+    display: grid;
+    gap: 16px;
+  }
+
+  .tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .tabs button {
+    min-height: 40px;
+    padding: 0 16px;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text);
+    font: 500 14px/1 var(--font);
+    cursor: pointer;
+  }
+
+  :global(:root[data-theme='light']) .tabs button {
+    border-radius: 8px;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .tabs button[aria-selected='true'] {
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    border-color: var(--btn-bg);
+  }
+
+  /* La fenêtre reprend l'app : toujours sombre, dans les deux thèmes. */
+  .window {
+    overflow: hidden;
+    border-radius: var(--r-md);
+    border: 1px solid rgb(255 255 255 / 0.09);
+    background: #131313;
+    color: #f2f2f2;
+    box-shadow: 0 30px 80px -30px rgb(0 0 0 / 0.6);
+  }
+
+  .titlebar {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    height: 40px;
+    padding: 0 16px;
+    background: #0b0b0b;
+    border-bottom: 1px solid rgb(255 255 255 / 0.06);
+  }
+
+  .titlebar span {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: #2a2a2a;
+  }
+
+  .titlebar p {
+    margin-left: auto;
+    font: 500 11px/1 'Inter Variable', sans-serif;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: #8c8c8c;
+  }
+
+  .body {
+    display: grid;
+    gap: 20px;
+    padding: clamp(20px, 3vw, 28px);
+  }
+
+  .head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .head .eyebrow {
+    color: #8c8c8c;
+  }
+
+  .head h3 {
+    font-family: 'Inter Variable', sans-serif;
+    font-size: 26px;
+    font-weight: 300;
+    font-stretch: 100%;
+    letter-spacing: -0.03em;
+    text-transform: none;
+  }
+
+  .trigger {
+    color: #acacac;
+    font-size: 14px;
+  }
+
+  .window .btn-primary {
+    background: #f2f2f2;
+    color: #080808;
+    border-color: #f2f2f2;
+    border-radius: 999px;
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 15px;
+    min-width: 130px;
+  }
+
+  .steps {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .steps :global(li) {
+    display: grid;
+    grid-template-columns: 28px 1fr auto;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 14px;
+    background: #101010;
+    border: 1px solid rgb(255 255 255 / 0.05);
+    border-radius: 12px;
+    transition: border-color 0.3s;
+  }
+
+  .steps :global(.text) {
+    display: grid;
+    min-width: 0;
+  }
+
+  .steps :global(strong) {
+    font-weight: 500;
+    font-size: 15px;
+  }
+
+  .steps :global(small) {
+    color: #8c8c8c;
+    font-size: 13px;
+  }
+
+  .steps :global(.state) {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: #8c8c8c;
+  }
+
+  .steps :global(.icon) {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1px dashed rgb(255 255 255 / 0.2);
+    font-size: 14px;
+  }
+
+  .steps :global(li[data-state='running'] .icon) {
+    border: 2px solid rgb(255 255 255 / 0.15);
+    border-top-color: #f2f2f2;
+    animation: spin 0.8s linear infinite;
+  }
+
+  .steps :global(li[data-state='done']) {
+    border-color: rgb(255 255 255 / 0.14);
+  }
+
+  .steps :global(li[data-state='done'] .icon) {
+    border: 0;
+    background: #f2f2f2;
+    color: #080808;
+  }
+
+  .steps :global(li[data-state='done'] .icon)::after {
+    content: '✓';
+  }
+
+  .steps :global(li[data-state='done'] .state),
+  .steps :global(li[data-state='failed'] .state) {
+    color: #f2f2f2;
+  }
+
+  .steps :global(li[data-state='failed']) {
+    border-color: rgb(255 255 255 / 0.5);
+    border-style: dashed;
+  }
+
+  .steps :global(li[data-state='failed'] .icon) {
+    border: 1.5px solid #f2f2f2;
+  }
+
+  .steps :global(li[data-state='failed'] .icon)::after {
+    content: '✗';
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .fail {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: #acacac;
+    cursor: pointer;
+  }
+
+  .fail input {
+    width: 16px;
+    height: 16px;
+    accent-color: #f2f2f2;
+  }
+
+  .summary {
+    min-height: 1.6em;
+    font-size: 14px;
+    color: #f2f2f2;
+  }
+
+  .note {
+    font-size: 13px;
+    color: var(--text-3);
+  }
+
+  @media (max-width: 480px) {
+    .steps :global(li) {
+      grid-template-columns: 28px 1fr;
+    }
+
+    .steps :global(.state) {
+      grid-column: 2;
+    }
+  }
+</style>

@@ -1,0 +1,263 @@
+---
+// Inscription à la bêta + recrutement pour les entretiens utilisateurs (validation marché).
+// Chaque envoi porte le segment de la page et les paramètres UTM : on compare ainsi
+// quelles cibles répondent le plus (stratégie « du pêcheur » conseillée par le mentor).
+import Star from './Star.astro';
+import { url } from '../data/site';
+
+interface Props {
+  segment?: string;
+  title?: string;
+}
+
+const { segment = 'accueil', title = 'Un clic. Tout ton setup.' } = Astro.props;
+const endpoint = import.meta.env.PUBLIC_FORM_ENDPOINT ?? '';
+const profiles = [
+  { value: 'joueurs', label: 'Je joue sur PC' },
+  { value: 'streamers', label: 'Je streame ou crée du contenu' },
+  { value: 'teletravail', label: 'Je travaille sur mon ordinateur' },
+  { value: 'autre', label: 'Autre' },
+];
+---
+
+<section class="section beta" id="beta">
+  <div class="wrap inner">
+    <div class="intro">
+      <p class="eyebrow">Bientôt en bêta</p>
+      <h2>{title}</h2>
+      <Star />
+      <p class="lead">
+        <strong>Inscris-toi pour tester Nexum avant tout le monde.</strong> Tu recevras un e-mail à l’ouverture de la bêta, rien d’autre. Et si tu as 20 minutes, dis-nous ce qui t’agace sur ton ordi : c’est ce qui décidera des prochains modes.
+      </p>
+    </div>
+
+    <form class="form" data-waitlist data-endpoint={endpoint} novalidate>
+      <input type="hidden" name="segment" value={segment} />
+      <div class="field">
+        <label for={`email-${segment}`}>E-mail</label>
+        <input id={`email-${segment}`} name="email" type="email" autocomplete="email" required placeholder="toi@exemple.fr" />
+      </div>
+
+      <fieldset class="field">
+        <legend>Tu es plutôt…</legend>
+        <div class="options">
+          {profiles.map((p) => (
+            <label class="option">
+              <input type="radio" name="profil" value={p.value} checked={p.value === segment} />
+              <span>{p.label}</span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+
+      <div class="field">
+        <label for={`pain-${segment}`}>Qu’est-ce qui t’agace le plus sur ton ordinateur ? <span class="opt">(facultatif)</span></label>
+        <textarea id={`pain-${segment}`} name="agacement" rows="3" maxlength="1000" placeholder="Ex. : je rouvre les mêmes 6 applis chaque matin…"></textarea>
+      </div>
+
+      <label class="check">
+        <input type="checkbox" name="entretien" value="oui" />
+        <span>OK pour un entretien de 20 minutes avec l’équipe (visio ou message).</span>
+      </label>
+
+      <label class="check">
+        <input type="checkbox" name="consentement" value="oui" required />
+        <span>J’accepte que Nexum garde mon e-mail et mes réponses pour me recontacter au sujet de la bêta. <a href={url('confidentialite')}>En savoir plus</a></span>
+      </label>
+
+      <button class="btn btn-primary" type="submit" disabled={!endpoint}>
+        {endpoint ? 'Rejoindre la bêta' : 'Inscriptions bientôt ouvertes'}
+      </button>
+      <p class="status" role="status" aria-live="polite" data-status></p>
+    </form>
+  </div>
+</section>
+
+<script>
+  for (const form of document.querySelectorAll<HTMLFormElement>('[data-waitlist]')) {
+    const endpoint = form.dataset.endpoint;
+    const status = form.querySelector<HTMLElement>('[data-status]')!;
+    const button = form.querySelector<HTMLButtonElement>('button[type=submit]')!;
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (!endpoint) return;
+
+      const data = new FormData(form);
+      const email = String(data.get('email') ?? '').trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        status.textContent = 'Vérifie ton adresse e-mail.';
+        form.querySelector<HTMLInputElement>('input[name=email]')?.focus();
+        return;
+      }
+      if (!data.get('consentement')) {
+        status.textContent = 'Coche la case de consentement pour qu’on puisse te recontacter.';
+        return;
+      }
+
+      const params = new URLSearchParams(location.search);
+      for (const key of ['utm_source', 'utm_medium', 'utm_campaign']) {
+        const value = params.get(key);
+        if (value) data.set(key, value);
+      }
+      data.set('page', location.pathname);
+
+      button.disabled = true;
+      status.textContent = 'Envoi…';
+      try {
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers: { Accept: 'application/json' },
+          body: data,
+        });
+        if (!res.ok) throw new Error(String(res.status));
+        form.reset();
+        status.textContent = 'C’est noté ! On te prévient dès que la bêta ouvre.';
+      } catch {
+        status.textContent = 'L’envoi a échoué. Réessaie dans un instant.';
+      } finally {
+        button.disabled = false;
+      }
+    });
+  }
+</script>
+
+<style>
+  .inner {
+    display: grid;
+    gap: clamp(40px, 6vw, 80px);
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+
+  .intro {
+    display: grid;
+    gap: 24px;
+  }
+
+  .form {
+    display: grid;
+    gap: 22px;
+    padding: clamp(22px, 3vw, 32px);
+    background: var(--panel);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r-md);
+  }
+
+  :global(:root[data-theme='light']) .form {
+    background: transparent;
+    border-radius: 18px;
+  }
+
+  .field {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    min-width: 0;
+  }
+
+  label,
+  legend {
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .opt {
+    color: var(--text-3);
+    font-weight: 400;
+  }
+
+  input[type='email'],
+  textarea {
+    width: 100%;
+    padding: 13px 14px;
+    background: var(--panel-2);
+    border: 1px solid var(--line-strong);
+    border-radius: 10px;
+    color: var(--text);
+    font: 16px/1.4 var(--font);
+    resize: vertical;
+  }
+
+  :global(:root[data-theme='light']) input[type='email'],
+  :global(:root[data-theme='light']) textarea {
+    background: rgb(255 255 255 / 0.5);
+    border-radius: 6px;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--text-3);
+  }
+
+  .options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  .option {
+    position: relative;
+  }
+
+  .option input {
+    position: absolute;
+    opacity: 0;
+  }
+
+  .option span {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    padding: 0 14px;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    font-weight: 400;
+    cursor: pointer;
+  }
+
+  :global(:root[data-theme='light']) .option span {
+    border-radius: 8px;
+  }
+
+  .option input:checked + span {
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    border-color: var(--btn-bg);
+  }
+
+  .option input:focus-visible + span {
+    outline: 2px solid var(--text);
+    outline-offset: 2px;
+  }
+
+  .check {
+    display: grid;
+    grid-template-columns: 18px 1fr;
+    gap: 12px;
+    font-weight: 400;
+    color: var(--text-2);
+    cursor: pointer;
+  }
+
+  .check input {
+    width: 18px;
+    height: 18px;
+    margin: 2px 0 0;
+    accent-color: var(--text);
+  }
+
+  .status {
+    min-height: 1.6em;
+    font-size: 14px;
+  }
+
+  @media (max-width: 860px) {
+    .inner {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

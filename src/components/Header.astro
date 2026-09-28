@@ -1,0 +1,246 @@
+---
+import { segments, url } from '../data/site';
+
+const links = [
+  { href: url('#fonctionnement'), label: 'Fonctionnement' },
+  { href: url('#modes'), label: 'Modes' },
+  { href: url('#integrations'), label: 'Intégrations' },
+  { href: url('#faq'), label: 'FAQ' },
+];
+---
+
+<header class="band header">
+  <div class="wrap bar">
+    <a class="brand" href={url()} aria-label="Nexum, accueil">
+      <img src={url('favicon.svg')} alt="" width="32" height="32" />
+      <span class="wordmark">Nexum</span>
+    </a>
+
+    <nav class="nav" aria-label="Navigation principale">
+      {links.map((l) => <a href={l.href}>{l.label}</a>)}
+      <details class="for">
+        <summary>Pour qui ?</summary>
+        <div class="menu">
+          {segments.map((s) => <a href={url(`pour/${s.slug}`)}>{s.label}</a>)}
+        </div>
+      </details>
+    </nav>
+
+    <div class="actions">
+      <button class="theme" type="button" data-theme-toggle aria-label="Changer de thème">
+        <svg class="sun" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="4"></circle>
+          <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path>
+        </svg>
+        <svg class="moon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"></path>
+        </svg>
+      </button>
+      <a class="cta" href={url('#beta')}>Rejoindre la bêta</a>
+    </div>
+  </div>
+</header>
+
+<script>
+  const root = document.documentElement;
+  const button = document.querySelector<HTMLButtonElement>('[data-theme-toggle]');
+
+  function label() {
+    const next = root.dataset.theme === 'light' ? 'sombre' : 'clair';
+    button?.setAttribute('aria-label', `Passer au thème ${next}`);
+  }
+
+  label();
+  button?.addEventListener('click', () => {
+    const theme = root.dataset.theme === 'light' ? 'dark' : 'light';
+    root.dataset.theme = theme;
+    try {
+      localStorage.setItem('nexum-theme', theme);
+    } catch {
+      // Stockage indisponible (navigation privée) : le choix vaut pour la page.
+    }
+    label();
+  });
+
+  // Ferme le menu « Pour qui ? » au clic ailleurs.
+  document.addEventListener('click', (event) => {
+    const details = document.querySelector<HTMLDetailsElement>('.header details.for');
+    if (details?.open && !details.contains(event.target as Node)) details.open = false;
+  });
+</script>
+
+<style>
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    border-bottom: 1px solid rgb(255 255 255 / 0.08);
+  }
+
+  .bar {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    height: 68px;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+  }
+
+  .brand img {
+    border-radius: 8px;
+  }
+
+  .wordmark {
+    font: 500 15px/1 'Inter Variable', system-ui, sans-serif;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+  }
+
+  :global(:root[data-theme='light']) .wordmark {
+    font-family: 'Archivo Variable', sans-serif;
+    font-weight: 800;
+    font-stretch: 125%;
+    font-size: 17px;
+    letter-spacing: 0.12em;
+  }
+
+  .nav {
+    display: flex;
+    align-items: center;
+    gap: 26px;
+    margin-left: auto;
+    font-size: 14px;
+  }
+
+  .nav a,
+  .nav summary {
+    color: var(--on-band-2);
+    text-decoration: none;
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+
+  .nav a:hover,
+  .nav summary:hover {
+    color: var(--on-band);
+  }
+
+  .for {
+    position: relative;
+  }
+
+  .for summary {
+    list-style: none;
+  }
+
+  .for summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .for summary::after {
+    content: ' ▾';
+    font-size: 11px;
+  }
+
+  .menu {
+    position: absolute;
+    top: calc(100% + 14px);
+    right: 0;
+    display: grid;
+    min-width: 170px;
+    padding: 8px;
+    background: var(--band);
+    border: 1px solid rgb(255 255 255 / 0.12);
+    border-radius: 12px;
+  }
+
+  .menu a {
+    padding: 8px 12px;
+    border-radius: 8px;
+  }
+
+  .menu a:hover {
+    background: rgb(255 255 255 / 0.06);
+  }
+
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .theme {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border: 1px solid rgb(255 255 255 / 0.16);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--on-band);
+    cursor: pointer;
+  }
+
+  .theme svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+  }
+
+  .moon {
+    display: none;
+  }
+
+  :global(:root[data-theme='light']) .sun {
+    display: none;
+  }
+
+  :global(:root[data-theme='light']) .moon {
+    display: block;
+  }
+
+  .cta {
+    display: inline-flex;
+    align-items: center;
+    height: 40px;
+    padding: 0 18px;
+    border-radius: 999px;
+    background: var(--on-band);
+    color: var(--band);
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  :global(:root[data-theme='light']) .cta {
+    border-radius: 0;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  @media (max-width: 880px) {
+    .nav {
+      display: none;
+    }
+
+    .actions {
+      margin-left: auto;
+    }
+  }
+
+  @media (max-width: 400px) {
+    .wordmark {
+      display: none;
+    }
+  }
+</style>
