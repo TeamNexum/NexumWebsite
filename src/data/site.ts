@@ -1,12 +1,14 @@
 // Contenu partagé du site. Règle : ne marquer « disponible » que ce qui marche
 // vraiment dans le prototype (Nexum/crates/nexum-schema/src/action_types.rs).
+// Ton (guide de marque) : vouvoiement, peu de mots, aucune exclamation, aucun emoji.
+import type { IconName } from './icons';
 
 export const site = {
   name: 'Nexum',
-  tagline: 'Jouer, streamer ou chiller sans friction.',
+  tagline: 'Jouer, streamer ou se détendre, sans friction.',
   description:
-    "Nexum relie tes jeux, ton son, tes lumières et tes applis. Tu choisis un mode, Nexum prépare tout ton setup en un clic, quelle que soit la marque.",
-  stage: 'En développement · bêta prévue en 2027',
+    'Nexum relie vos jeux, votre son, vos lumières et vos applis. Vous choisissez un mode, Nexum prépare tout votre setup en un clic, quelle que soit la marque.',
+  stage: 'En développement · bêta en 2027',
   github: 'https://github.com/TeamNexum',
 };
 
@@ -16,59 +18,78 @@ export function url(path = ''): string {
   return `${base}/${path.replace(/^\//, '')}`;
 }
 
-export type Step = { label: string; detail: string };
-/** `burst` : les 4 étiquettes courtes affichées autour du N dans le visuel « galaxie ». */
-export type DemoMode = { id: string; name: string; trigger: string; burst: string[]; steps: Step[] };
+export type Tint = [number, number, number];
 
+/** `kind` choisit l'icône ; `value` est la valeur courte affichée sur la plaque de la constellation. */
+export type Step = { kind: IconName; label: string; detail: string; value: string };
+export type DemoMode = {
+  id: string;
+  name: string;
+  icon: IconName;
+  tint: Tint;
+  desc: string;
+  trigger: string;
+  steps: Step[];
+};
+
+// Teintes : une par profil, reprises du guide de marque (Gaming, Studio Streamer, Work, Chill).
 export const demoModes: DemoMode[] = [
   {
     id: 'jeu',
     name: 'Gaming',
+    icon: 'game',
+    tint: [150, 90, 255],
+    desc: 'Le son, les lumières et la partie, prêts ensemble',
     trigger: 'Un clic, ou quand Steam lance une partie',
-    burst: ['Volume 70 %', 'Lumières', 'Steam', 'Applis fermées'],
     steps: [
-      { label: 'Fermer les applis inutiles', detail: 'Navigateur, launcher de mise à jour' },
-      { label: 'Régler le son', detail: 'Volume à 70 %' },
-      { label: 'Baisser la luminosité', detail: 'Écran à 60 %' },
-      { label: 'Ambiance lumineuse', detail: 'Philips Hue · scène « Arène »' },
-      { label: 'Lancer la partie', detail: 'Steam · Counter-Strike 2' },
+      { kind: 'Applis', label: 'Fermer les applis inutiles', detail: 'Navigateur, launcher de mise à jour', value: 'Fermées' },
+      { kind: 'Audio', label: 'Régler le son', detail: 'Volume à 70 %', value: '70 %' },
+      { kind: 'Écran', label: 'Baisser la luminosité', detail: 'Écran à 60 %', value: '60 %' },
+      { kind: 'Éclairage', label: 'Ambiance lumineuse', detail: 'Philips Hue · scène « Arène »', value: 'Arène' },
+      { kind: 'Jeux', label: 'Lancer la partie', detail: 'Steam · Counter-Strike 2', value: 'Steam' },
     ],
   },
   {
     id: 'stream',
     name: 'Stream',
+    icon: 'cam',
+    tint: [255, 100, 200],
+    desc: 'Scène, musique et lumière prêtes à diffuser',
     trigger: 'Un clic, ou un raccourci clavier',
-    burst: ['OBS', 'Musique', 'Face cam', 'Ne pas déranger'],
     steps: [
-      { label: 'Ouvrir OBS', detail: 'Scène « Direct »' },
-      { label: 'Lancer la musique', detail: 'Playlist « Stream »' },
-      { label: 'Éclairer le visage', detail: 'Philips Hue · scène « Face cam »' },
-      { label: 'Ouvrir le chat', detail: 'twitch.tv/popout/chat' },
-      { label: 'Passer Discord en occupé', detail: 'Statut « Ne pas déranger »' },
+      { kind: 'Applis', label: 'Ouvrir OBS', detail: 'Scène « Direct »', value: 'OBS' },
+      { kind: 'Musique', label: 'Lancer la musique', detail: 'Playlist « Stream »', value: 'Stream' },
+      { kind: 'Éclairage', label: 'Éclairer le visage', detail: 'Philips Hue · scène « Face cam »', value: 'Face cam' },
+      { kind: 'Lien', label: 'Ouvrir le chat', detail: 'twitch.tv/popout/chat', value: 'twitch.tv' },
+      { kind: 'Statut', label: 'Passer Discord en occupé', detail: 'Statut « Ne pas déranger »', value: 'Occupé' },
     ],
   },
   {
     id: 'travail',
     name: 'Travail',
+    icon: 'case',
+    tint: [255, 235, 200],
+    desc: 'Calme, lumineux, prêt pour la journée',
     trigger: 'Tous les jours à 9 h',
-    burst: ['VS Code', 'Slack', 'Concentration', 'Volume 40 %'],
     steps: [
-      { label: 'Ouvrir tes outils', detail: 'VS Code, Slack, agenda' },
-      { label: 'Couper les distractions', detail: 'Fermer Steam et Discord' },
-      { label: 'Lumière de bureau', detail: 'Philips Hue · scène « Concentration »' },
-      { label: 'Régler le son', detail: 'Volume à 40 %' },
+      { kind: 'Applis', label: 'Ouvrir vos outils', detail: 'VS Code, Slack, agenda', value: 'VS Code' },
+      { kind: 'Applis', label: 'Couper les distractions', detail: 'Fermer Steam et Discord', value: 'Fermées' },
+      { kind: 'Éclairage', label: 'Lumière de bureau', detail: 'Philips Hue · scène « Concentration »', value: 'Concentration' },
+      { kind: 'Audio', label: 'Régler le son', detail: 'Volume à 40 %', value: '40 %' },
     ],
   },
   {
     id: 'chill',
     name: 'Chill',
+    icon: 'head',
+    tint: [255, 150, 90],
+    desc: 'Ambiance douce et musique',
     trigger: 'Automatiquement après 18 h',
-    burst: ['Musique', 'Lumière tamisée', 'Écran 40 %', 'Slack fermé'],
     steps: [
-      { label: 'Fermer le travail', detail: 'Slack, VS Code' },
-      { label: 'Lumière tamisée', detail: 'Philips Hue · scène « Détente »' },
-      { label: 'Lancer la musique', detail: 'Playlist « Soirée »' },
-      { label: 'Adoucir l’écran', detail: 'Luminosité à 40 %' },
+      { kind: 'Applis', label: 'Fermer le travail', detail: 'Slack, VS Code', value: 'Fermées' },
+      { kind: 'Éclairage', label: 'Lumière tamisée', detail: 'Philips Hue · scène « Détente »', value: 'Détente' },
+      { kind: 'Musique', label: 'Lancer la musique', detail: 'Playlist « Soirée »', value: 'Soirée' },
+      { kind: 'Écran', label: 'Adoucir l’écran', detail: 'Luminosité à 40 %', value: '40 %' },
     ],
   },
 ];
@@ -112,20 +133,20 @@ export const segments: Segment[] = [
   {
     slug: 'joueurs',
     label: 'Joueurs',
-    title: 'Ta partie commence avant le chargement.',
+    title: 'Votre partie commence avant le chargement.',
     lead: 'Un clic sur « Gaming » : les applis inutiles se ferment, le son et les lumières se règlent, la partie se lance. Steam, Epic ou GOG, peu importe.',
     pains: [
       {
-        title: 'Trois launchers, trois logiciels de périphériques',
+        title: 'Trois launchers, trois logiciels',
         text: 'Chaque marque a son appli. Nexum les pilote toutes depuis le même mode.',
       },
       {
-        title: 'Des réglages à refaire à chaque session',
-        text: 'Son, luminosité, lumières, applis en fond : tu les règles une fois dans un mode.',
+        title: 'Des réglages à refaire',
+        text: 'Son, luminosité, lumières, applis en fond : vous les réglez une fois, dans un mode.',
       },
       {
         title: 'Rien à coder',
-        text: 'Pas de script AutoHotkey. Tu choisis des actions dans une liste.',
+        text: 'Pas de script AutoHotkey. Vous choisissez des actions dans une liste.',
       },
     ],
     mode: 'jeu',
@@ -133,20 +154,20 @@ export const segments: Segment[] = [
   {
     slug: 'streamers',
     label: 'Streamers',
-    title: 'Lance ton direct en un clic.',
-    lead: 'OBS, musique, lumières, chat, statut Discord : ton mode « Stream » prépare tout pendant que tu t’installes.',
+    title: 'Lancez votre direct en un clic.',
+    lead: 'OBS, musique, lumières, chat, statut Discord : votre mode « Stream » prépare tout pendant que vous vous installez.',
     pains: [
       {
         title: 'Une checklist avant chaque live',
-        text: 'Scène, lumière, musique, chat… Nexum déroule la liste pour toi, dans le bon ordre.',
+        text: 'Scène, lumière, musique, chat. Nexum déroule la liste, dans le bon ordre.',
       },
       {
         title: 'Un oubli se voit en direct',
-        text: 'Chaque étape renvoie un résultat. Si une action échoue, tu le vois avant de lancer.',
+        text: 'Chaque étape renvoie un résultat. Si une action échoue, vous le voyez avant de lancer.',
       },
       {
         title: 'Retour à la normale',
-        text: 'Quand tu coupes le live, Nexum peut remettre ton setup comme avant.',
+        text: 'Quand vous coupez le live, Nexum peut remettre votre setup comme avant.',
       },
     ],
     mode: 'stream',
@@ -154,8 +175,8 @@ export const segments: Segment[] = [
   {
     slug: 'teletravail',
     label: 'Télétravail',
-    title: 'Le même PC, deux vies bien séparées.',
-    lead: 'Ton mode « Travail » ouvre tes outils le matin. Ton mode « Chill » les ferme le soir et tamise la lumière. Sans y penser.',
+    title: 'Un même PC, deux vies séparées.',
+    lead: 'Votre mode « Travail » ouvre vos outils le matin. Votre mode « Chill » les ferme le soir et tamise la lumière. Sans y penser.',
     pains: [
       {
         title: 'Le travail déborde sur la soirée',
@@ -167,7 +188,7 @@ export const segments: Segment[] = [
       },
       {
         title: 'Aucune compétence technique',
-        text: 'Tu composes tes modes dans l’interface, sans script ni configuration compliquée.',
+        text: 'Vous composez vos modes dans l’interface, sans script ni configuration compliquée.',
       },
     ],
     mode: 'travail',
@@ -188,7 +209,7 @@ export const faq = [
   },
   {
     q: 'Sur quels systèmes ?',
-    a: 'Nexum est une application de bureau pour Windows, macOS et Linux. Une appli mobile pour lancer tes modes à distance est prévue.',
+    a: 'Nexum est une application de bureau pour Windows, macOS et Linux. Une appli mobile pour lancer vos modes à distance est prévue.',
   },
   {
     q: 'Est-ce compatible avec les anti-cheats ?',
@@ -196,6 +217,6 @@ export const faq = [
   },
   {
     q: 'Que faites-vous de mes données ?',
-    a: 'Tes modes sont stockés sur ta machine. Si tu t’inscris à la bêta, nous gardons ton e-mail et tes réponses uniquement pour te recontacter. Détails dans la page confidentialité.',
+    a: 'Vos modes sont stockés sur votre machine. Si vous vous inscrivez à la bêta, nous gardons votre e-mail et vos réponses uniquement pour vous recontacter. Détails dans la page confidentialité.',
   },
 ];

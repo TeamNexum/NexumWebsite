@@ -1,0 +1,16 @@
+---
+// Le nœud Nexum : croix de trois cases sur une grille de 11, centre vidé, « lune » grise #777 en haut à droite.
+// Toujours carré, sans rotation ni arrondi (guide de marque, page « Les interdits »).
+interface Props {
+  size?: number;
+}
+
+const { size = 22 } = Astro.props;
+---
+
+<svg class="mark" viewBox="0 0 11 11" width={size} height={size} shape-rendering="crispEdges" aria-hidden="true">
+  <rect x="4" y="0" width="3" height="11" fill="#fff"></rect>
+  <rect x="0" y="4" width="11" height="3" fill="#fff"></rect>
+  <rect x="8" y="0" width="3" height="3" fill="#777"></rect>
+  <rect x="4" y="4" width="3" height="3" fill="#000"></rect>
+</svg>

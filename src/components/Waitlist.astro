@@ -2,7 +2,6 @@
 // Inscription à la bêta + recrutement pour les entretiens utilisateurs (validation marché).
 // Chaque envoi porte le segment de la page et les paramètres UTM : on compare ainsi
 // quelles cibles répondent le plus (stratégie « du pêcheur » conseillée par le mentor).
-import Star from './Star.astro';
 import { url } from '../data/site';
 
 interface Props {
@@ -10,7 +9,7 @@ interface Props {
   title?: string;
 }
 
-const { segment = 'accueil', title = 'Un clic. Tout ton setup.' } = Astro.props;
+const { segment = 'accueil', title = 'Un clic. Tout votre setup.' } = Astro.props;
 const endpoint = import.meta.env.PUBLIC_FORM_ENDPOINT ?? '';
 const profiles = [
   { value: 'joueurs', label: 'Je joue sur PC' },
@@ -23,23 +22,22 @@ const profiles = [
 <section class="section beta" id="beta">
   <div class="wrap inner">
     <div class="intro">
-      <p class="eyebrow">Bientôt en bêta</p>
+      <p class="lab">Bientôt en bêta</p>
       <h2>{title}</h2>
-      <Star />
       <p class="lead">
-        <strong>Inscris-toi pour tester Nexum avant tout le monde.</strong> Tu recevras un e-mail à l’ouverture de la bêta, rien d’autre. Et si tu as 20 minutes, dis-nous ce qui t’agace sur ton ordi : c’est ce qui décidera des prochains modes.
+        <strong>Inscrivez-vous pour tester Nexum avant tout le monde.</strong> Vous recevrez un e-mail à l’ouverture de la bêta, rien d’autre. Si vous avez 20 minutes, dites-nous ce qui vous agace sur votre ordinateur : cela décidera des prochains modes.
       </p>
     </div>
 
-    <form class="form" data-waitlist data-endpoint={endpoint} novalidate>
+    <form class="form panel" data-waitlist data-endpoint={endpoint} novalidate>
       <input type="hidden" name="segment" value={segment} />
       <div class="field">
         <label for={`email-${segment}`}>E-mail</label>
-        <input id={`email-${segment}`} name="email" type="email" autocomplete="email" required placeholder="toi@exemple.fr" />
+        <input id={`email-${segment}`} name="email" type="email" autocomplete="email" required placeholder="vous@exemple.fr" />
       </div>
 
       <fieldset class="field">
-        <legend>Tu es plutôt…</legend>
+        <legend>Vous êtes plutôt</legend>
         <div class="options">
           {profiles.map((p) => (
             <label class="option">
@@ -51,17 +49,19 @@ const profiles = [
       </fieldset>
 
       <div class="field">
-        <label for={`pain-${segment}`}>Qu’est-ce qui t’agace le plus sur ton ordinateur ? <span class="opt">(facultatif)</span></label>
+        <label for={`pain-${segment}`}>Ce qui vous agace le plus sur votre ordinateur <span class="opt">(facultatif)</span></label>
         <textarea id={`pain-${segment}`} name="agacement" rows="3" maxlength="1000" placeholder="Ex. : je rouvre les mêmes 6 applis chaque matin…"></textarea>
       </div>
 
       <label class="check">
         <input type="checkbox" name="entretien" value="oui" />
+        <span class="bx" aria-hidden="true"></span>
         <span>OK pour un entretien de 20 minutes avec l’équipe (visio ou message).</span>
       </label>
 
       <label class="check">
         <input type="checkbox" name="consentement" value="oui" required />
+        <span class="bx" aria-hidden="true"></span>
         <span>J’accepte que Nexum garde mon e-mail et mes réponses pour me recontacter au sujet de la bêta. <a href={url('confidentialite')}>En savoir plus</a></span>
       </label>
 
@@ -86,12 +86,12 @@ const profiles = [
       const data = new FormData(form);
       const email = String(data.get('email') ?? '').trim();
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        status.textContent = 'Vérifie ton adresse e-mail.';
+        status.textContent = 'Vérifiez votre adresse e-mail.';
         form.querySelector<HTMLInputElement>('input[name=email]')?.focus();
         return;
       }
       if (!data.get('consentement')) {
-        status.textContent = 'Coche la case de consentement pour qu’on puisse te recontacter.';
+        status.textContent = 'Cochez la case de consentement pour que nous puissions vous recontacter.';
         return;
       }
 
@@ -112,9 +112,9 @@ const profiles = [
         });
         if (!res.ok) throw new Error(String(res.status));
         form.reset();
-        status.textContent = 'C’est noté ! On te prévient dès que la bêta ouvre.';
+        status.textContent = 'Inscription enregistrée. Un e-mail vous préviendra à l’ouverture de la bêta.';
       } catch {
-        status.textContent = 'L’envoi a échoué. Réessaie dans un instant.';
+        status.textContent = 'L’envoi a échoué. Réessayez dans un instant.';
       } finally {
         button.disabled = false;
       }
@@ -126,7 +126,7 @@ const profiles = [
   .inner {
     display: grid;
     gap: clamp(40px, 6vw, 80px);
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     align-items: start;
   }
 
@@ -137,35 +137,31 @@ const profiles = [
 
   .form {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: 22px;
     padding: clamp(22px, 3vw, 32px);
-    background: var(--panel);
-    border: 1px solid var(--line-strong);
-    border-radius: var(--r-md);
-  }
-
-  :global(:root[data-theme='light']) .form {
-    background: transparent;
-    border-radius: 18px;
   }
 
   .field {
     display: grid;
     gap: 8px;
+    min-width: 0;
     margin: 0;
     padding: 0;
     border: 0;
-    min-width: 0;
   }
 
   label,
   legend {
-    font-size: 14px;
-    font-weight: 500;
+    padding: 0;
+    font: 700 11px/1.5 var(--font-label);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
   }
 
   .opt {
-    color: var(--text-3);
+    color: var(--dim);
     font-weight: 400;
   }
 
@@ -173,23 +169,24 @@ const profiles = [
   textarea {
     width: 100%;
     padding: 13px 14px;
-    background: var(--panel-2);
+    background: #000;
     border: 1px solid var(--line-strong);
-    border-radius: 10px;
+    border-radius: 0;
     color: var(--text);
-    font: 16px/1.4 var(--font);
+    font: 500 15px/1.4 var(--font-body);
     resize: vertical;
   }
 
-  :global(:root[data-theme='light']) input[type='email'],
-  :global(:root[data-theme='light']) textarea {
-    background: rgb(255 255 255 / 0.5);
-    border-radius: 6px;
+  input[type='email']:focus,
+  textarea:focus {
+    outline: 2px dashed var(--accent);
+    outline-offset: 3px;
+    border-color: #fff;
   }
 
   input::placeholder,
   textarea::placeholder {
-    color: var(--text-3);
+    color: var(--dim);
   }
 
   .options {
@@ -201,6 +198,8 @@ const profiles = [
 
   .option {
     position: relative;
+    text-transform: none;
+    letter-spacing: 0;
   }
 
   .option input {
@@ -214,50 +213,89 @@ const profiles = [
     min-height: 40px;
     padding: 0 14px;
     border: 1px solid var(--line-strong);
-    border-radius: 999px;
-    font-weight: 400;
+    background: #000;
+    font: 500 13px/1.3 var(--font-body);
+    color: var(--soft);
     cursor: pointer;
+    transition: background var(--step-hover), color var(--step-hover);
   }
 
-  :global(:root[data-theme='light']) .option span {
-    border-radius: 8px;
+  .option span:hover {
+    border-color: #fff;
   }
 
   .option input:checked + span {
-    background: var(--btn-bg);
-    color: var(--btn-text);
-    border-color: var(--btn-bg);
+    background: #fff;
+    border-color: #fff;
+    color: #000;
   }
 
   .option input:focus-visible + span {
-    outline: 2px solid var(--text);
-    outline-offset: 2px;
+    outline: 2px dashed var(--accent);
+    outline-offset: 3px;
   }
 
   .check {
+    position: relative;
     display: grid;
     grid-template-columns: 18px 1fr;
     gap: 12px;
-    font-weight: 400;
-    color: var(--text-2);
+    font: 400 13px/1.55 var(--font-body);
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--soft);
     cursor: pointer;
   }
 
   .check input {
+    position: absolute;
+    opacity: 0;
+  }
+
+  .bx {
+    display: grid;
+    place-items: center;
     width: 18px;
     height: 18px;
-    margin: 2px 0 0;
-    accent-color: var(--text);
+    margin-top: 2px;
+    border: 1px solid var(--line-strong);
+    background: #000;
+    font-size: 12px;
+    line-height: 1;
+    color: #000;
+  }
+
+  .check input:checked + .bx {
+    background: #fff;
+  }
+
+  .check input:checked + .bx::after {
+    content: '✓';
+  }
+
+  .check input:focus-visible + .bx {
+    outline: 2px dashed var(--accent);
+    outline-offset: 3px;
+  }
+
+  .btn {
+    justify-self: start;
+    max-width: 100%;
+    padding-block: 12px;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.4;
   }
 
   .status {
     min-height: 1.6em;
-    font-size: 14px;
+    font-size: 13px;
+    color: var(--soft);
   }
 
   @media (max-width: 860px) {
     .inner {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
     }
   }
 </style>

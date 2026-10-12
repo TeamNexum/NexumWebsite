@@ -1,10 +1,12 @@
 ---
 import Base from '../layouts/Base.astro';
-import Galaxy from '../components/Galaxy.astro';
-import ModeDemo from '../components/ModeDemo.astro';
-import Star from '../components/Star.astro';
+import Hero from '../components/Hero.astro';
+import ModeStage from '../components/ModeStage.astro';
 import Waitlist from '../components/Waitlist.astro';
-import { faq, integrationsAvailable, integrationsPlanned, segments, site, team, url } from '../data/site';
+import { icons } from '../data/icons';
+import { demoModes, faq, integrationsAvailable, integrationsPlanned, segments, site, team, url } from '../data/site';
+
+const tint = demoModes[0]!.tint;
 
 const problems = [
   {
@@ -13,35 +15,35 @@ const problems = [
   },
   {
     title: 'Une marque, un logiciel',
-    text: 'Les outils des fabricants ne pilotent que leur propre matériel. Ton setup, lui, mélange plusieurs marques.',
+    text: 'Les outils des fabricants ne pilotent que leur propre matériel. Votre setup, lui, mélange plusieurs marques.',
   },
   {
-    title: 'Les scripts, c’est pour les techniciens',
+    title: 'Les scripts, pour les techniciens',
     text: 'Automatiser avec AutoHotkey ou des raccourcis demande du code. La plupart des gens abandonnent.',
   },
 ];
 
 const steps = [
   {
-    n: '01',
-    title: 'Compose ton mode',
-    text: 'Choisis des actions dans une liste : ouvrir une appli, régler le son, changer la lumière, lancer un jeu. Aucune ligne de code.',
+    icon: icons.Statut,
+    title: 'Composez votre mode',
+    text: 'Choisissez des actions dans une liste : ouvrir une appli, régler le son, changer la lumière, lancer un jeu. Aucune ligne de code.',
   },
   {
-    n: '02',
-    title: 'Déclenche-le',
+    icon: icons.spark,
+    title: 'Déclenchez-le',
     text: 'Un clic ou un raccourci aujourd’hui. Bientôt à la voix, à une heure donnée, au lancement d’un jeu ou au début d’une réunion.',
   },
   {
-    n: '03',
+    icon: icons.Jeux,
     title: 'Nexum vérifie',
-    text: 'Chaque action renvoie un résultat. Si une lumière ne répond pas, tu le vois, et tu peux relancer ou ignorer l’étape.',
+    text: 'Chaque action renvoie un résultat. Si une lumière ne répond pas, vous le voyez, et vous pouvez relancer ou ignorer l’étape.',
   },
 ];
 
 const compare = [
   { name: 'Logiciels constructeurs', sub: 'Razer Synapse, Corsair iCUE…', brands: 'Une seule marque', code: 'Sans code', scope: 'Périphériques' },
-  { name: 'Scripts', sub: 'AutoHotkey, raccourcis', brands: 'Toutes', code: 'Code requis', scope: 'Ce que tu codes' },
+  { name: 'Scripts', sub: 'AutoHotkey, raccourcis', brands: 'Toutes', code: 'Code requis', scope: 'Ce que vous codez' },
   { name: 'Launchers', sub: 'Steam, Playnite…', brands: '—', code: 'Sans code', scope: 'Jeux seulement' },
   { name: 'Nexum', sub: 'Modes', brands: 'Toutes', code: 'Sans code', scope: 'Applis, système, jeux, lumières' },
 ];
@@ -55,46 +57,42 @@ const roadmap = [
 
 const modeLines = [
   { mode: 'Gaming', what: 'Volume · Lumières · Steam' },
-  { mode: 'Travail', what: 'Notifs coupées · Slack' },
+  { mode: 'Travail', what: 'Applis · Concentration' },
   { mode: 'Chill', what: 'Musique · Lumière tamisée' },
 ];
 ---
 
-<Base>
-  <section class="hero">
-    <div class="wrap hero-grid">
-      <div class="hero-text">
-        <p class="eyebrow">{site.stage}</p>
-        <h1>Un clic.<br />Tout ton setup.</h1>
-        <Star />
-        <p class="lead">
-          <strong>Nexum règle ton PC selon ce que tu fais.</strong> Tu choisis un mode, et le son, la luminosité, les lumières et tes applis suivent. Sans script, quelle que soit la marque de ton matériel.
-        </p>
-        <ul class="mode-lines">
-          {modeLines.map((l) => (
-            <li><strong>{l.mode} :</strong><span class="dash" aria-hidden="true"></span><span>{l.what}</span></li>
-          ))}
-        </ul>
-        <div class="ctas">
-          <a class="btn btn-primary" href="#beta">Rejoindre la bêta</a>
-          <a class="btn btn-ghost" href="#modes">Voir un mode en action</a>
-        </div>
-      </div>
-      <Galaxy />
+<Base tint={tint}>
+  <Hero eyebrow="Nexum / Votre univers" tint={tint}>
+    <Fragment slot="title">Un clic.<br />Tout votre setup.</Fragment>
+    <p class="lead">
+      <strong>Nexum règle votre PC selon ce que vous faites.</strong> Vous choisissez un mode, et le son, la luminosité, les lumières et vos applis suivent. Sans script, quelle que soit la marque de votre matériel.
+    </p>
+    <ul class="mode-lines">
+      {modeLines.map((l, i) => (
+        <li><i>{String(i + 1).padStart(2, '0')}</i><strong>{l.mode}</strong><span class="dash" aria-hidden="true"></span><span>{l.what}</span></li>
+      ))}
+    </ul>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#beta">Rejoindre la bêta</a>
+      <a class="btn" href="#modes">Essayer un mode</a>
     </div>
-  </section>
+    <p class="meta">{site.stage}</p>
+  </Hero>
 
   <section class="section" id="probleme">
     <div class="wrap">
-      <div class="section-head">
-        <p class="eyebrow">Le problème</p>
-        <h2>Avant chaque session, tu règles tout à la main.</h2>
+      <div class="sec-head">
+        <p class="lab">01 / Le problème</p>
+        <h2>Tout se règle à la main.</h2>
+        <p>Avant chaque session, vous ouvrez, réglez et relancez les mêmes outils, un par un.</p>
       </div>
-      <div class="grid-3">
-        {problems.map((p) => (
-          <article class="card">
+      <div class="cards">
+        {problems.map((p, i) => (
+          <article class="panel card">
+            <span class="big">{String(i + 1).padStart(2, '0')}</span>
             <h3>{p.title}</h3>
-            <p class="muted">{p.text}</p>
+            <p>{p.text}</p>
           </article>
         ))}
       </div>
@@ -103,16 +101,18 @@ const modeLines = [
 
   <section class="section" id="fonctionnement">
     <div class="wrap">
-      <div class="section-head">
-        <p class="eyebrow">Fonctionnement</p>
-        <h2>Un mode, c’est une liste d’actions. Nexum s’occupe du reste.</h2>
+      <div class="sec-head">
+        <p class="lab">02 / Fonctionnement</p>
+        <h2>Un mode, une liste d’actions.</h2>
+        <p>Nexum s’occupe du reste : il exécute les étapes dans l’ordre et vous dit ce qui a marché.</p>
       </div>
-      <ol class="steps">
-        {steps.map((s) => (
+      <ol class="flow">
+        {steps.map((s, i) => (
           <li>
-            <span class="n">{s.n}</span>
+            <span class="pn">{String(i + 1).padStart(2, '0')}</span>
+            <span class="ic on"><svg class="i" viewBox="0 0 24 24" aria-hidden="true" set:html={s.icon} /></span>
             <h3>{s.title}</h3>
-            <p class="muted">{s.text}</p>
+            <p>{s.text}</p>
           </li>
         ))}
       </ol>
@@ -120,30 +120,31 @@ const modeLines = [
   </section>
 
   <section class="section" id="modes">
-    <div class="wrap split">
-      <div class="section-head sticky">
-        <p class="eyebrow">Essaie</p>
-        <h2>Active un mode pour voir.</h2>
-        <p class="lead">Choisis un mode puis clique sur « Activer ». Coche la panne pour voir comment Nexum te prévient quand une action échoue.</p>
+    <div class="wrap">
+      <div class="sec-head">
+        <p class="lab">03 / Modes</p>
+        <h2>Activez un mode.</h2>
+        <p>Choisissez un profil, puis maintenez « Activer ». Cochez la panne pour voir comment Nexum vous prévient quand une action échoue.</p>
       </div>
-      <ModeDemo />
+      <ModeStage />
+      <p class="note">Illustration. Les étapes reprennent des actions que le prototype sait déjà faire ou qui sont prévues.</p>
     </div>
   </section>
 
   <section class="section" id="integrations">
     <div class="wrap">
-      <div class="section-head">
-        <p class="eyebrow">Intégrations</p>
+      <div class="sec-head">
+        <p class="lab">04 / Intégrations</p>
         <h2>Une action, plusieurs marques.</h2>
-        <p class="lead">Nexum pense en besoins (« lancer la musique », « changer la lumière ») puis utilise le service que tu as. Voici où on en est, sans exagérer.</p>
+        <p>Nexum pense en besoins (« lancer la musique », « changer la lumière »), puis utilise le service que vous avez. Voici où nous en sommes, sans exagérer.</p>
       </div>
       <div class="integ">
-        <div>
-          <h3 class="integ-title"><span class="tag">✓ Disponible</span> dans le prototype</h3>
+        <div class="panel box">
+          <p class="head"><span class="tag">Disponible</span><span>dans le prototype</span></p>
           <ul class="chips">{integrationsAvailable.map((i) => <li>{i}</li>)}</ul>
         </div>
-        <div>
-          <h3 class="integ-title"><span class="tag">○ Prévu</span> sur la feuille de route</h3>
+        <div class="panel box">
+          <p class="head"><span class="tag plain">Prévu</span><span>sur la feuille de route</span></p>
           <ul class="chips planned">{integrationsPlanned.map((i) => <li>{i}</li>)}</ul>
         </div>
       </div>
@@ -152,11 +153,11 @@ const modeLines = [
 
   <section class="section" id="comparaison">
     <div class="wrap">
-      <div class="section-head">
-        <p class="eyebrow">Pourquoi Nexum</p>
-        <h2>Ce que les autres outils ne relient pas.</h2>
+      <div class="sec-head">
+        <p class="lab">05 / Comparaison</p>
+        <h2>Ce que les autres ne relient pas.</h2>
       </div>
-      <div class="table-wrap">
+      <div class="panel table-wrap">
         <table>
           <thead>
             <tr><th scope="col">Outil</th><th scope="col">Marques</th><th scope="col">Code</th><th scope="col">Ce qu’il pilote</th></tr>
@@ -178,14 +179,15 @@ const modeLines = [
 
   <section class="section" id="pour-qui">
     <div class="wrap">
-      <div class="section-head">
-        <p class="eyebrow">Pour qui</p>
-        <h2>Un setup, trois façons de s’en servir.</h2>
+      <div class="sec-head">
+        <p class="lab">06 / Pour qui</p>
+        <h2>Un setup, trois usages.</h2>
       </div>
-      <div class="grid-3">
-        {segments.map((s) => (
-          <a class="card seg" href={url(`pour/${s.slug}`)}>
-            <p class="eyebrow">{s.label}</p>
+      <div class="cards">
+        {segments.map((s, i) => (
+          <a class="panel card seg" href={url(`pour/${s.slug}`)}>
+            <span class="big">{String(i + 1).padStart(2, '0')}</span>
+            <p class="lab">{s.label}</p>
             <h3>{s.title}</h3>
             <span class="more">Découvrir →</span>
           </a>
@@ -196,10 +198,10 @@ const modeLines = [
 
   <section class="section" id="feuille-de-route">
     <div class="wrap">
-      <div class="section-head">
-        <p class="eyebrow">Feuille de route</p>
+      <div class="sec-head">
+        <p class="lab">07 / Feuille de route</p>
         <h2>Où en est Nexum.</h2>
-        <p class="lead">Nexum est un projet étudiant EIP à Epitech, construit par {team.length} personnes : {team.join(', ')}. On avance en public.</p>
+        <p>Nexum est un projet étudiant EIP à Epitech, construit par {team.length} personnes : {team.join(', ')}. Nous avançons en public.</p>
       </div>
       <ol class="roadmap">
         {roadmap.map((r, i) => (
@@ -214,15 +216,15 @@ const modeLines = [
 
   <section class="section" id="faq">
     <div class="wrap faq">
-      <div class="section-head">
-        <p class="eyebrow">FAQ</p>
+      <div class="sec-head">
+        <p class="lab">08 / FAQ</p>
         <h2>Questions fréquentes.</h2>
       </div>
       <div class="qa">
         {faq.map((f) => (
           <details>
             <summary>{f.q}</summary>
-            <p class="muted">{f.a}</p>
+            <p>{f.a}</p>
           </details>
         ))}
       </div>
@@ -233,111 +235,191 @@ const modeLines = [
 </Base>
 
 <style>
-  .hero {
-    padding-block: clamp(48px, 8vw, 96px) clamp(72px, 10vw, 120px);
-  }
-
-  .hero-grid {
-    display: grid;
-    grid-template-columns: 1.05fr 1fr;
-    gap: clamp(40px, 6vw, 80px);
-    align-items: center;
-  }
-
-  .hero-text {
-    display: grid;
-    gap: 26px;
-  }
-
+  /* ---------- hero ---------- */
   .mode-lines {
     display: grid;
     gap: 10px;
     margin: 0;
     padding: 0;
     list-style: none;
-    font-size: 14px;
   }
 
   .mode-lines li {
     display: flex;
     align-items: center;
     gap: 14px;
-    color: var(--text-2);
+    font: 700 11px/1.4 var(--font-label);
+    letter-spacing: 0.1em;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
+    color: var(--muted);
+  }
+
+  .mode-lines i {
+    font-style: normal;
+    font-size: 9px;
+    color: #666;
   }
 
   .mode-lines strong {
-    min-width: 96px;
-    color: var(--text);
-    font-family: var(--font-title);
-    font-stretch: var(--title-stretch);
-    font-weight: 700;
-    letter-spacing: 0.08em;
+    min-width: 76px;
+    color: #fff;
   }
 
   .dash {
-    flex: 0 1 80px;
-    height: 1px;
-    background: var(--line-strong);
+    flex: 0 1 56px;
+    border-top: 1px dashed var(--line-strong);
   }
 
   .ctas {
     display: flex;
     flex-wrap: wrap;
-    gap: 12px;
+    gap: 14px 16px;
     padding-top: 6px;
   }
 
-  .steps {
+  .meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font: 700 11px/1.4 var(--font-label);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--dim);
+  }
+
+  .meta::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    background: rgb(var(--tint));
+    box-shadow: 0 0 9px rgb(var(--tint));
+    animation: blink 1.4s steps(2) infinite;
+  }
+
+  /* ---------- cartes numérotées (problème, pour qui) ---------- */
+  .cards {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  }
+
+  .card {
+    display: grid;
+    gap: 14px;
+    align-content: start;
+    padding: 22px 22px 28px;
+    text-decoration: none;
+  }
+
+  .card p:not(.lab) {
+    color: var(--soft);
+  }
+
+  .big {
+    font: 28px/1 var(--font-title);
+    color: rgb(255 255 255 / 0.2);
+  }
+
+  .seg {
+    min-height: 240px;
+    transition: box-shadow var(--step-hover), background var(--step-hover);
+  }
+
+  .seg h3 {
+    font: 16px/1.6 var(--font-title);
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  .seg:hover {
+    background: rgb(12 12 16 / 0.92);
+    box-shadow: inset 0 0 0 1px #fff;
+  }
+
+  .seg:hover .big {
+    color: rgb(var(--tint));
+  }
+
+  .more {
+    margin-top: auto;
+    padding-top: 10px;
+    font: 700 12px/1 var(--font-label);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #fff;
+  }
+
+  /* ---------- fonctionnement : chaîne en trois étapes ---------- */
+  .flow {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
+    gap: 16px 28px;
     margin: 0;
     padding: 0;
     list-style: none;
-    counter-reset: none;
   }
 
-  .steps li {
+  .flow li {
+    position: relative;
     display: grid;
     gap: 12px;
     align-content: start;
-    padding-top: 22px;
-    border-top: 1px solid var(--line-strong);
+    padding: 20px 20px 24px;
+    background: rgb(255 255 255 / 0.03);
+    border: 1px solid #fff;
   }
 
-  .n {
-    font-family: var(--mono);
-    font-size: 13px;
-    color: var(--text-3);
+  .flow li:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 40px;
+    right: -29px;
+    width: 28px;
+    border-top: 1px dashed #fff;
   }
 
-  .split {
-    display: grid;
-    grid-template-columns: 0.8fr 1.2fr;
-    gap: clamp(32px, 5vw, 72px);
-    align-items: start;
+  .flow .pn {
+    position: absolute;
+    top: 14px;
+    right: 16px;
+    font: 700 10px var(--font-label);
+    letter-spacing: 0.1em;
+    color: #666;
   }
 
-  .sticky {
-    position: sticky;
-    top: 110px;
-    margin-bottom: 0;
+  .flow .ic {
+    margin-bottom: 8px;
+    box-shadow: 0 0 18px rgb(255 255 255 / 0.4);
   }
 
+  .flow p {
+    color: var(--soft);
+  }
+
+  .note {
+    margin-top: 18px;
+    font-size: 12.5px;
+    color: var(--dim);
+  }
+
+  /* ---------- intégrations ---------- */
   .integ {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 40px;
+    gap: 16px;
   }
 
-  .integ-title {
+  .box {
+    padding: 24px;
+  }
+
+  .head {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 12px;
-    margin-bottom: 18px;
-    font-size: 16px;
+    margin-bottom: 20px;
+    color: var(--muted);
   }
 
   .chips {
@@ -350,49 +432,57 @@ const modeLines = [
   }
 
   .chips li {
-    padding: 9px 14px;
+    padding: 7px 12px;
     border: 1px solid var(--line-strong);
-    border-radius: 10px;
-    font-size: 14px;
+    background: rgb(255 255 255 / 0.03);
+    font-size: 13px;
+  }
+
+  .chips li::before {
+    content: '';
+    display: inline-block;
+    width: 5px;
+    height: 5px;
+    margin-right: 9px;
+    vertical-align: middle;
+    background: #fff;
   }
 
   .chips.planned li {
     border-style: dashed;
-    color: var(--text-2);
+    background: none;
+    color: var(--muted);
   }
 
-  :global(:root:not([data-theme='light'])) .chips.planned li {
-    border-color: rgb(255 255 255 / 0.2);
+  .chips.planned li::before {
+    background: none;
+    border: 1px solid #777;
   }
 
+  /* ---------- comparaison ---------- */
   .table-wrap {
     overflow-x: auto;
-    border: 1px solid var(--line-strong);
-    border-radius: var(--r-md);
   }
 
   table {
     width: 100%;
-    min-width: 620px;
+    min-width: 640px;
     border-collapse: collapse;
-    font-size: 15px;
   }
 
   th,
   td {
     padding: 16px 20px;
     text-align: left;
-    border-bottom: 1px solid var(--line);
     vertical-align: top;
+    border-bottom: 1px dashed var(--line-strong);
   }
 
   thead th {
-    font-family: var(--mono);
-    font-size: 12px;
-    font-weight: 400;
-    letter-spacing: 0.14em;
+    font: 700 11px/1.4 var(--font-label);
+    letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--text-3);
+    color: var(--muted);
   }
 
   tbody th {
@@ -402,12 +492,12 @@ const modeLines = [
   tbody th small {
     display: block;
     font-weight: 400;
-    color: var(--text-3);
-    font-size: 13px;
+    font-size: 12.5px;
+    color: var(--dim);
   }
 
   td {
-    color: var(--text-2);
+    color: var(--soft);
   }
 
   tr:last-child th,
@@ -416,82 +506,95 @@ const modeLines = [
   }
 
   tr.us {
-    background: var(--btn-bg);
+    background: #fff;
   }
 
   tr.us th,
   tr.us td,
   tr.us small {
-    color: var(--btn-text);
+    color: #000;
+    font-weight: 700;
   }
 
-  .seg {
-    display: grid;
-    gap: 14px;
-    text-decoration: none;
-    transition: border-color 0.2s, transform 0.2s;
+  tr.us small {
+    font-weight: 400;
   }
 
-  .seg:hover {
-    border-color: var(--text-2);
-    transform: translateY(-2px);
-  }
-
-  .more {
-    font-size: 14px;
-    color: var(--text-2);
-  }
-
+  /* ---------- feuille de route ---------- */
   .roadmap {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
+    gap: 16px 24px;
     margin: 0;
     padding: 0;
     list-style: none;
   }
 
   .roadmap li {
+    position: relative;
     display: grid;
     gap: 10px;
     align-content: start;
-    padding-top: 20px;
+    padding-top: 22px;
     border-top: 1px dashed var(--line-strong);
-    color: var(--text-2);
+    color: var(--soft);
+  }
+
+  .roadmap li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: -4px;
+    width: 7px;
+    height: 7px;
+    background: #666;
   }
 
   .roadmap li.now {
-    border-top: 2px solid var(--text);
+    border-top: 2px solid #fff;
+  }
+
+  .roadmap li.now::before {
+    top: -5px;
+    background: rgb(var(--tint));
+    box-shadow: 0 0 9px rgb(var(--tint));
+    animation: blink 1.4s steps(2) infinite;
   }
 
   .when {
-    font-family: var(--mono);
-    font-size: 13px;
+    font: 700 12px/1.4 var(--font-label);
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--text);
+    color: #fff;
   }
 
+  /* ---------- FAQ ---------- */
   .faq {
     display: grid;
     grid-template-columns: 0.8fr 1.2fr;
     gap: clamp(32px, 5vw, 72px);
+    align-items: start;
+  }
+
+  .faq .sec-head {
+    margin-bottom: 0;
   }
 
   .qa details {
-    border-bottom: 1px solid var(--line-strong);
+    border-bottom: 1px dashed var(--line-strong);
   }
 
   .qa details:first-child {
-    border-top: 1px solid var(--line-strong);
+    border-top: 1px dashed var(--line-strong);
   }
 
   .qa summary {
     display: flex;
     justify-content: space-between;
+    align-items: center;
     gap: 16px;
     padding: 20px 0;
-    font-size: 17px;
+    font-size: 15px;
     font-weight: 500;
     cursor: pointer;
     list-style: none;
@@ -503,44 +606,55 @@ const modeLines = [
 
   .qa summary::after {
     content: '+';
-    font-family: var(--mono);
-    color: var(--text-3);
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    border: 1px solid var(--line-strong);
+    font-weight: 700;
+    color: var(--muted);
+  }
+
+  .qa summary:hover::after {
+    background: #fff;
+    color: #000;
   }
 
   .qa details[open] summary::after {
     content: '−';
+    background: #fff;
+    color: #000;
   }
 
   .qa details p {
     padding-bottom: 22px;
+    max-width: 62ch;
+    color: var(--soft);
   }
 
   @media (max-width: 900px) {
-    .hero-grid,
-    .split,
     .faq,
     .integ {
       grid-template-columns: 1fr;
     }
 
-    .sticky {
-      position: static;
+    .flow {
+      grid-template-columns: 1fr;
     }
 
-    .steps,
+    .flow li::after {
+      display: none;
+    }
+
     .roadmap {
       grid-template-columns: 1fr 1fr;
     }
   }
 
   @media (max-width: 560px) {
-    .steps,
     .roadmap {
       grid-template-columns: 1fr;
-    }
-
-    .mode-lines strong {
-      min-width: 80px;
     }
 
     .dash {

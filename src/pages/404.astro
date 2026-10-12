@@ -5,7 +5,7 @@ import { url } from '../data/site';
 
 <Base title="Page introuvable">
   <section class="wrap lost">
-    <p class="eyebrow">Erreur 404</p>
+    <p class="lab">Erreur 404</p>
     <h1>Cette page ne s’est pas alignée.</h1>
     <p class="lead">Le lien est peut-être ancien, ou la page a changé d’adresse.</p>
     <a class="btn btn-primary" href={url()}>Retour à l’accueil</a>
@@ -15,8 +15,10 @@ import { url } from '../data/site';
 <style>
   .lost {
     display: grid;
-    gap: 24px;
+    gap: 26px;
     justify-items: start;
-    padding-block: clamp(80px, 14vw, 160px);
+    min-height: 60vh;
+    align-content: center;
+    padding-block: clamp(64px, 12vw, 140px);
   }
 </style>

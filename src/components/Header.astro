@@ -1,245 +1,266 @@
 ---
-import { segments, url } from '../data/site';
+import Mark from './Mark.astro';
+import { url } from '../data/site';
 
+// Le numéro est celui de la section sur la page d'accueil.
 const links = [
-  { href: url('#fonctionnement'), label: 'Fonctionnement' },
-  { href: url('#modes'), label: 'Modes' },
-  { href: url('#integrations'), label: 'Intégrations' },
-  { href: url('#faq'), label: 'FAQ' },
+  { n: '02', id: 'fonctionnement', label: 'Fonctionnement' },
+  { n: '03', id: 'modes', label: 'Modes' },
+  { n: '04', id: 'integrations', label: 'Intégrations' },
+  { n: '06', id: 'pour-qui', label: 'Pour qui' },
+  { n: '08', id: 'faq', label: 'FAQ' },
 ];
 ---
 
-<header class="band header">
-  <div class="wrap bar">
-    <a class="brand" href={url()} aria-label="Nexum, accueil">
-      <img src={url('favicon.svg')} alt="" width="32" height="32" />
-      <span class="wordmark">Nexum</span>
-    </a>
+<header class="top">
+  <div class="in">
+    <a class="logo" href={url()} aria-label="Nexum, accueil"><Mark size={22} /><span>NEXUM</span></a>
 
-    <nav class="nav" aria-label="Navigation principale">
-      {links.map((l) => <a href={l.href}>{l.label}</a>)}
-      <details class="for">
-        <summary>Pour qui ?</summary>
-        <div class="menu">
-          {segments.map((s) => <a href={url(`pour/${s.slug}`)}>{s.label}</a>)}
-        </div>
-      </details>
+    <nav class="tabs" aria-label="Navigation principale">
+      {links.map((l) => (
+        <a href={url(`#${l.id}`)} data-spy={l.id}><i>{l.n}</i>{l.label}</a>
+      ))}
     </nav>
 
-    <div class="actions">
-      <button class="theme" type="button" data-theme-toggle aria-label="Changer de thème">
-        <svg class="sun" viewBox="0 0 24 24" aria-hidden="true">
-          <circle cx="12" cy="12" r="4"></circle>
-          <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path>
-        </svg>
-        <svg class="moon" viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"></path>
-        </svg>
-      </button>
-      <a class="cta" href={url('#beta')}>Rejoindre la bêta</a>
+    <div class="nr">
+      <a class="btn btn-primary cta" href={url('#beta')}>Rejoindre la bêta</a>
+      <details class="menu">
+        <summary aria-label="Menu"><span>Menu</span></summary>
+        <nav class="sheet panel" aria-label="Navigation (mobile)">
+          {links.map((l) => (
+            <a href={url(`#${l.id}`)}><i>{l.n}</i>{l.label}</a>
+          ))}
+        </nav>
+      </details>
     </div>
   </div>
 </header>
 
 <script>
-  const root = document.documentElement;
-  const button = document.querySelector<HTMLButtonElement>('[data-theme-toggle]');
-
-  function label() {
-    const next = root.dataset.theme === 'light' ? 'sombre' : 'clair';
-    button?.setAttribute('aria-label', `Passer au thème ${next}`);
+  // Section visible = onglet souligné (page d'accueil seulement : les ancres existent là).
+  const tabs = [...document.querySelectorAll<HTMLAnchorElement>('.tabs a[data-spy]')];
+  const sections = [...document.querySelectorAll<HTMLElement>('main section[id]')];
+  if (tabs.length && sections.length) {
+    const mark = () => {
+      const line = innerHeight * 0.35;
+      let current = '';
+      for (const s of sections) if (s.getBoundingClientRect().top <= line) current = s.id;
+      for (const t of tabs) {
+        if (t.dataset.spy === current) t.setAttribute('aria-current', 'true');
+        else t.removeAttribute('aria-current');
+      }
+    };
+    addEventListener('scroll', mark, { passive: true });
+    mark();
   }
 
-  label();
-  button?.addEventListener('click', () => {
-    const theme = root.dataset.theme === 'light' ? 'dark' : 'light';
-    root.dataset.theme = theme;
-    try {
-      localStorage.setItem('nexum-theme', theme);
-    } catch {
-      // Stockage indisponible (navigation privée) : le choix vaut pour la page.
-    }
-    label();
+  // Menu mobile : se ferme au choix d'un lien, ou d'un clic ailleurs.
+  const menu = document.querySelector<HTMLDetailsElement>('.top details.menu');
+  menu?.addEventListener('click', (e) => {
+    if ((e.target as HTMLElement).closest('.sheet a')) menu.open = false;
   });
-
-  // Ferme le menu « Pour qui ? » au clic ailleurs.
-  document.addEventListener('click', (event) => {
-    const details = document.querySelector<HTMLDetailsElement>('.header details.for');
-    if (details?.open && !details.contains(event.target as Node)) details.open = false;
+  document.addEventListener('click', (e) => {
+    if (menu?.open && !menu.contains(e.target as Node)) menu.open = false;
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && menu?.open) menu.open = false;
   });
 </script>
 
 <style>
-  .header {
+  .top {
     position: sticky;
     top: 0;
-    z-index: 50;
-    border-bottom: 1px solid rgb(255 255 255 / 0.08);
+    z-index: 20;
+    background: rgb(0 0 0 / 0.72);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
   }
 
-  .bar {
+  /* Filet de teinte sous la barre, comme dans l'application. */
+  .top::after {
+    content: '';
+    position: absolute;
+    inset: auto 0 -1px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(var(--tint), 0.95) 50%, transparent);
+  }
+
+  .in {
     display: flex;
     align-items: center;
-    gap: 24px;
-    height: 68px;
+    gap: 28px;
+    max-width: 1360px;
+    height: 64px;
+    margin: 0 auto;
+    padding: 0 var(--gutter);
   }
 
-  .brand {
+  .logo {
     display: flex;
     align-items: center;
     gap: 12px;
+    font: 11px/1 var(--font-title);
+    letter-spacing: 0.08em;
     text-decoration: none;
+    color: #fff;
   }
 
-  .brand img {
-    border-radius: 8px;
+  .logo :global(.mark) {
+    filter: drop-shadow(0 0 6px rgba(var(--tint), 0.85));
   }
 
-  .wordmark {
-    font: 500 15px/1 'Inter Variable', system-ui, sans-serif;
-    letter-spacing: 0.24em;
-    text-transform: uppercase;
+  .tabs {
+    display: flex;
+    gap: 2px;
+    flex: 1;
+    margin-left: 6px;
   }
 
-  :global(:root[data-theme='light']) .wordmark {
-    font-family: 'Archivo Variable', sans-serif;
-    font-weight: 800;
-    font-stretch: 125%;
-    font-size: 17px;
-    letter-spacing: 0.12em;
-  }
-
-  .nav {
+  .tabs a {
+    position: relative;
     display: flex;
     align-items: center;
-    gap: 26px;
-    margin-left: auto;
-    font-size: 14px;
+    gap: 8px;
+    height: 64px;
+    padding: 0 14px;
+    font: 700 12px/1 var(--font-label);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-decoration: none;
+    transition: color 0.2s, background 0.2s;
   }
 
-  .nav a,
-  .nav summary {
-    color: var(--on-band-2);
-    text-decoration: none;
-    cursor: pointer;
+  .tabs i {
+    font-style: normal;
+    font-size: 9px;
+    color: #666;
     transition: color 0.2s;
   }
 
-  .nav a:hover,
-  .nav summary:hover {
-    color: var(--on-band);
+  .tabs a:hover {
+    color: #fff;
+    background: rgb(255 255 255 / 0.05);
   }
 
-  .for {
-    position: relative;
+  .tabs a:hover i {
+    color: var(--accent);
   }
 
-  .for summary {
-    list-style: none;
+  .tabs a[aria-current] {
+    color: #fff;
   }
 
-  .for summary::-webkit-details-marker {
-    display: none;
+  .tabs a[aria-current] i {
+    color: rgb(var(--tint));
   }
 
-  .for summary::after {
-    content: ' ▾';
-    font-size: 11px;
-  }
-
-  .menu {
+  .tabs a[aria-current]::after {
+    content: '';
     position: absolute;
-    top: calc(100% + 14px);
-    right: 0;
-    display: grid;
-    min-width: 170px;
-    padding: 8px;
-    background: var(--band);
-    border: 1px solid rgb(255 255 255 / 0.12);
-    border-radius: 12px;
+    left: 14px;
+    right: 14px;
+    bottom: 0;
+    height: 3px;
+    background: #fff;
+    box-shadow: 0 0 12px rgb(255 255 255 / 0.7);
+    clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 100%, 0 100%);
   }
 
-  .menu a {
-    padding: 8px 12px;
-    border-radius: 8px;
-  }
-
-  .menu a:hover {
-    background: rgb(255 255 255 / 0.06);
-  }
-
-  .actions {
+  .nr {
     display: flex;
     align-items: center;
-    gap: 10px;
-  }
-
-  .theme {
-    display: grid;
-    place-items: center;
-    width: 40px;
-    height: 40px;
-    border: 1px solid rgb(255 255 255 / 0.16);
-    border-radius: 999px;
-    background: transparent;
-    color: var(--on-band);
-    cursor: pointer;
-  }
-
-  .theme svg {
-    width: 18px;
-    height: 18px;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.7;
-    stroke-linecap: round;
-  }
-
-  .moon {
-    display: none;
-  }
-
-  :global(:root[data-theme='light']) .sun {
-    display: none;
-  }
-
-  :global(:root[data-theme='light']) .moon {
-    display: block;
+    gap: 12px;
+    margin-left: auto;
   }
 
   .cta {
-    display: inline-flex;
-    align-items: center;
+    min-height: 40px;
+    padding: 0 16px;
+    box-shadow: 3px 3px 0 rgba(var(--tint), 0.85);
+  }
+
+  .menu {
+    display: none;
+    position: relative;
+  }
+
+  .menu summary {
+    display: grid;
+    place-items: center;
     height: 40px;
-    padding: 0 18px;
-    border-radius: 999px;
-    background: var(--on-band);
-    color: var(--band);
-    font-size: 14px;
-    font-weight: 500;
-    text-decoration: none;
-    white-space: nowrap;
-  }
-
-  :global(:root[data-theme='light']) .cta {
-    border-radius: 0;
-    font-size: 12px;
-    letter-spacing: 0.14em;
+    padding: 0 14px;
+    list-style: none;
+    border: 1px solid var(--line-strong);
+    background: #000;
+    font: 700 11px/1 var(--font-label);
+    letter-spacing: 0.1em;
     text-transform: uppercase;
+    color: var(--muted);
+    cursor: pointer;
   }
 
-  @media (max-width: 880px) {
-    .nav {
+  .menu summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .menu[open] summary {
+    background: #fff;
+    color: #000;
+  }
+
+  .sheet {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 12px);
+    display: grid;
+    min-width: 230px;
+    padding: 10px;
+    background: #000;
+  }
+
+  .sheet a {
+    display: flex;
+    gap: 12px;
+    padding: 12px 10px;
+    font: 700 12px/1 var(--font-label);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--soft);
+    border-left: 3px solid transparent;
+  }
+
+  .sheet a i {
+    font-style: normal;
+    color: #666;
+  }
+
+  .sheet a:hover {
+    color: #fff;
+    background: linear-gradient(90deg, rgb(255 255 255 / 0.12), transparent 90%);
+    border-left-color: #fff;
+  }
+
+  @media (max-width: 1000px) {
+    .tabs {
       display: none;
     }
 
-    .actions {
-      margin-left: auto;
+    .menu {
+      display: block;
     }
   }
 
-  @media (max-width: 400px) {
-    .wordmark {
+  @media (max-width: 460px) {
+    .cta {
+      padding: 0 12px;
+      font-size: 11px;
+    }
+
+    .logo span {
       display: none;
     }
   }

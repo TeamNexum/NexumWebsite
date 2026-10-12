@@ -1,14 +1,15 @@
 # Nexum · site vitrine
 
-Site de présentation de [Nexum](https://github.com/TeamNexum/Nexum) : l’application qui prépare tout ton setup (son, lumières, applis, jeux) en un clic, selon le mode choisi.
+Site de présentation de [Nexum](https://github.com/TeamNexum/Nexum) : l’application qui prépare tout votre setup (son, lumières, applis, jeux) en un clic, selon le mode choisi.
 
 Le site sert aussi à la validation marché du projet EIP : le formulaire de la bêta recrute des testeurs et des volontaires pour les entretiens, et chaque inscription indique la page d’origine (accueil, joueurs, streamers, télétravail) pour comparer les cibles.
 
 ## Stack
 
 - [Astro](https://astro.build) 7, site 100 % statique, sans framework JS côté client.
-- CSS maison avec les tokens de la charte Nexum ; polices hébergées avec le site (Inter, Archivo, JetBrains Mono via Fontsource).
-- Deux thèmes : **sombre** = charte monochrome actuelle ; **clair** = direction artistique « Galaxie ». Par défaut, celui du système ; le bouton de l’en-tête le change et le choix est gardé dans le navigateur.
+- CSS maison avec les tokens du guide de marque Nexum (direction artistique « Galaxy » v1.0) ; polices hébergées avec le site (Press Start 2P, Silkscreen, JetBrains Mono via Fontsource).
+- Un seul thème, toujours sombre, comme l’application : ciel et galaxie en pixels (canvas, trame de Bayer), cadres aux coins crantés, une seule teinte de profil par page (violet par défaut, celle du mode sur les pages joueurs / streamers / télétravail).
+- Ton du guide : vouvoiement, aucune exclamation, aucun emoji, titres de six mots au plus.
 
 ## Lancer en local
 
@@ -33,10 +34,14 @@ Copier `.env.example` en `.env` pour le développement local.
 
 ```
 src/
-  data/site.ts          contenu : modes de démo, intégrations, cibles, FAQ, équipe
-  layouts/Base.astro    <head>, thème, en-tête et pied de page
-  components/           Header, Footer, Galaxy (visuel), ModeDemo (démo), Waitlist (formulaire), Star
+  data/site.ts          contenu : modes de démo (avec leur teinte), intégrations, cibles, FAQ, équipe
+  data/icons.ts         icônes de la charte (24 × 24, contours de 1,5 px)
+  layouts/Base.astro    <head>, ciel de fond, en-tête et pied de page
+  scripts/              sky.ts (Voie lactée pixel), galaxy.ts (galaxie pixel animée)
+  components/           Header, Footer, Sky, Mark (logo), Hero (couverture),
+                        ModeStage (démo : constellation, « maintenir pour lancer », journal), Waitlist (formulaire)
   pages/                accueil, pour/[segment] (joueurs, streamers, teletravail), confidentialite, 404
+  styles/global.css     tokens du guide, cadre cranté, étiquettes, boutons
 ```
 
 **Règle de contenu :** ne marquer « disponible » que ce qui marche dans le prototype (`crates/nexum-schema/src/action_types.rs` du dépôt Nexum). Le reste est « prévu ».

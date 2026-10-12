@@ -1,41 +1,41 @@
 ---
+import Mark from './Mark.astro';
 import { segments, site, team, url } from '../data/site';
 ---
 
-<footer class="band footer">
+<footer class="foot">
   <div class="wrap grid">
     <div class="about">
-      <a class="brand" href={url()}>
-        <img src={url('favicon.svg')} alt="Logo Nexum" width="36" height="36" />
-        <span>Nexum</span>
-      </a>
+      <a class="brand" href={url()} aria-label="Nexum, accueil"><Mark size={28} /><span>NEXUM</span></a>
       <p>{site.tagline}</p>
-      <p class="small">
-        Projet EIP Epitech, conçu par {team.slice(0, -1).join(', ')} et {team.at(-1)}.
-      </p>
+      <p class="small">Projet EIP Epitech, conçu par {team.slice(0, -1).join(', ')} et {team.at(-1)}.</p>
     </div>
 
     <nav aria-label="Pour qui">
-      <p class="title">Pour qui</p>
+      <p class="lab">Pour qui</p>
       {segments.map((s) => <a href={url(`pour/${s.slug}`)}>{s.label}</a>)}
     </nav>
 
     <nav aria-label="Liens">
-      <p class="title">Nexum</p>
+      <p class="lab">Nexum</p>
       <a href={url('#beta')}>Rejoindre la bêta</a>
       <a href={site.github} rel="noopener">GitHub</a>
       <a href={url('confidentialite')}>Confidentialité</a>
     </nav>
   </div>
+
   <div class="wrap base">
-    <span>L’équipe Nexum · Projet EIP Epitech</span>
+    <span>Nexum / Projet EIP Epitech</span>
     <span>© {new Date().getFullYear()} Nexum</span>
   </div>
 </footer>
 
 <style>
-  .footer {
-    padding-top: 64px;
+  .foot {
+    position: relative;
+    padding-top: 56px;
+    border-top: 1px dashed var(--line-strong);
+    background: linear-gradient(to bottom, transparent, rgb(0 0 0 / 0.6));
   }
 
   .grid {
@@ -48,29 +48,26 @@ import { segments, site, team, url } from '../data/site';
     display: grid;
     gap: 14px;
     align-content: start;
-    max-width: 360px;
+    max-width: 380px;
   }
 
   .brand {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 14px;
+    font: 13px/1 var(--font-title);
+    letter-spacing: 0.08em;
     text-decoration: none;
-    font-weight: 500;
-    letter-spacing: 0.24em;
-    text-transform: uppercase;
+    color: #fff;
   }
 
-  .brand img {
-    border-radius: 9px;
-  }
-
-  p {
-    color: var(--on-band-2);
+  .about p {
+    color: var(--soft);
   }
 
   .small {
-    font-size: 14px;
+    font-size: 13px;
+    color: var(--muted);
   }
 
   nav {
@@ -79,17 +76,14 @@ import { segments, site, team, url } from '../data/site';
     align-content: start;
   }
 
-  .title {
-    font-family: var(--mono);
-    font-size: 12px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
+  nav .lab {
+    margin-bottom: 4px;
   }
 
   nav a {
-    color: var(--on-band);
+    width: fit-content;
+    color: var(--text);
     text-decoration: none;
-    font-size: 15px;
   }
 
   nav a:hover {
@@ -102,14 +96,20 @@ import { segments, site, team, url } from '../data/site';
     flex-wrap: wrap;
     justify-content: space-between;
     gap: 12px;
-    margin-top: 56px;
-    padding-block: 24px;
-    border-top: 1px solid rgb(255 255 255 / 0.08);
-    font-family: var(--mono);
-    font-size: 12px;
+    margin-top: 48px;
+    padding-bottom: 22px;
+    font: 700 11px/1.4 var(--font-label);
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: var(--on-band-2);
+    color: var(--dim);
+  }
+
+  /* Filet en tirets aligné sur le contenu (la bordure du conteneur déborderait sur les marges). */
+  .base::before {
+    content: '';
+    flex-basis: 100%;
+    margin-bottom: 10px;
+    border-top: 1px dashed var(--line-strong);
   }
 
   @media (max-width: 720px) {
