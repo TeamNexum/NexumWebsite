@@ -182,7 +182,8 @@ p {
 .section {
   padding-block: clamp(64px, 9vw, 112px);
   border-top: 1px dashed var(--line-strong);
-  background: rgb(0 0 0 / 0.55);
+  background: rgb(0 0 0 / 0.3);
+  overflow-x: clip; /* le voile de .sec-head déborde volontairement : il ne doit pas élargir la page */
 }
 
 .sec-head {

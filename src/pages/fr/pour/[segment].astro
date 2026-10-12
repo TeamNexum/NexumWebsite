@@ -1,0 +1,13 @@
+---
+import Segment from '../../../views/Segment.astro';
+import { segmentBase } from '../../../data/site';
+import { segmentSlugs } from '../../../i18n/routes';
+
+export function getStaticPaths() {
+  return segmentBase.map(({ slug }) => ({ params: { segment: segmentSlugs.fr[slug] }, props: { slug } }));
+}
+
+const { slug } = Astro.props;
+---
+
+<Segment lang="fr" slug={slug} />

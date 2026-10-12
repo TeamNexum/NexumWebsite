@@ -2,38 +2,51 @@
 // Démo interactive : l'interface de l'application, avec ses quatre profils d'exemple.
 // Un profil = une constellation de nœuds (une action par nœud) qui s'allument dans l'ordre d'exécution.
 // Les actions affichées sont des exemples : celles que le prototype sait faire ou qui sont prévues.
-import { demoModes } from '../data/site';
+import { getModes } from '../data/site';
 import { icons } from '../data/icons';
+import { dict, fmt, type Lang } from '../i18n';
 
 interface Props {
+  lang: Lang;
   initial?: string;
 }
 
-const { initial } = Astro.props;
-const start = Math.max(0, demoModes.findIndex((m) => m.id === initial));
+const { lang, initial } = Astro.props;
+const modes = getModes(lang);
+const t = dict[lang].stage;
+const start = Math.max(0, modes.findIndex((m) => m.id === initial));
 const pad = (n: number) => String(n).padStart(2, '0');
+// Tout ce que le script affiche (journal, étapes, notifications) vient de ce dictionnaire.
+const strings = { ...t, kinds: dict[lang].kinds, decimal: dict[lang].decimal };
 ---
 
-<div class="stg" data-stage data-start={start} data-modes={JSON.stringify(demoModes)} data-icons={JSON.stringify(icons)}>
+<div
+  class="stg"
+  data-stage
+  data-start={start}
+  data-modes={JSON.stringify(modes)}
+  data-icons={JSON.stringify(icons)}
+  data-t={JSON.stringify(strings)}
+>
   <div class="deck panel">
     <div class="deck-h lab">
-      <span>Parcourir les profils</span>
+      <span>{t.browse}</span>
       <span class="st">
-        <button type="button" data-prev aria-label="Profil précédent">←</button>
-        <button type="button" data-next aria-label="Profil suivant">→</button>
+        <button type="button" data-prev aria-label={t.prev}>←</button>
+        <button type="button" data-next aria-label={t.next}>→</button>
       </span>
     </div>
-    <div class="rowc" data-list role="group" aria-label="Profils d’exemple">
-      <div class="gt">Profils · {pad(demoModes.length)}</div>
-      {demoModes.map((m, i) => (
+    <div class="rowc" data-list role="group" aria-label={t.group}>
+      <div class="gt">{fmt(t.profiles, { n: pad(modes.length) })}</div>
+      {modes.map((m, i) => (
         <button type="button" class="cd" style={`--c:${m.tint.join(',')}`} data-i={i} aria-pressed={i === start ? 'true' : 'false'}>
           <span class="top">
             <span class="ic"><svg class="i" viewBox="0 0 24 24" aria-hidden="true" set:html={icons[m.icon]} /></span>
-            <span class="tag act-tag">Actif</span>
+            <span class="tag act-tag">{t.active}</span>
           </span>
           <span>
             <b>{m.name}</b>
-            <small>{m.steps.length} actions</small>
+            <small>{fmt(t.actions, { n: m.steps.length })}</small>
             <small class="ds">{m.desc}</small>
           </span>
           <span class="dots">{m.steps.map(() => <i />)}</span>
@@ -50,7 +63,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
       <div class="cap" data-cap></div>
       <div class="tele" data-tele></div>
       <div class="state" data-state></div>
-      <div class="hintv">Survolez un nœud</div>
+      <div class="hintv">{t.hint}</div>
     </div>
 
     <div class="info">
@@ -61,7 +74,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
           <h3 class="nm" data-name></h3>
         </div>
         <p class="desc" data-desc></p>
-        <p class="trig"><span>Déclencheur</span><b data-trig></b></p>
+        <p class="trig"><span>{t.trigger}</span><b data-trig></b></p>
       </div>
       <div class="i-r">
         <div class="lab" data-syst></div>
@@ -71,31 +84,31 @@ const pad = (n: number) => String(n).padStart(2, '0');
             <span class="fill"></span>
             <span class="lt">
               <span class="pl"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5l12 7-12 7z"></path></svg></span>
-              <span class="tx"><span class="l1" data-go-title>Activer ce profil</span><span class="l2" data-go-hint>Maintenir pour lancer</span></span>
+              <span class="tx"><span class="l1" data-go-title>{t.activate}</span><span class="l2" data-go-hint>{t.hold}</span></span>
             </span>
           </button>
         </div>
         <label class="failchk">
           <input type="checkbox" data-fail />
           <span class="bx" aria-hidden="true"></span>
-          <span>Simuler une panne (une lumière hors ligne)</span>
+          <span>{t.fail}</span>
         </label>
       </div>
     </div>
 
     <div class="chain">
-      <div class="lab"><span>Chaîne d’activation</span><span data-cnt></span></div>
+      <div class="lab"><span>{t.chain}</span><span data-cnt></span></div>
       <ol class="pipe" data-steps></ol>
     </div>
 
     <div class="journal">
-      <div class="lab">Journal de bord</div>
+      <div class="lab">{t.journal}</div>
       <div class="term" data-log role="log" aria-live="off"></div>
     </div>
   </div>
 
   <div class="toast" data-toast role="status"></div>
-  <noscript><p class="muted">Cette démo demande JavaScript.</p></noscript>
+  <noscript><p class="muted">{t.noscript}</p></noscript>
 </div>
 
 <script>
@@ -104,10 +117,12 @@ const pad = (n: number) => String(n).padStart(2, '0');
   type Step = { kind: string; label: string; detail: string; value: string };
   type Mode = { id: string; name: string; icon: string; tint: Tint; desc: string; trigger: string; steps: Step[] };
   type Plate = { x: number; y: number; side: 'r' | 'l' };
+  type Strings = Record<string, string> & { kinds: Record<string, string> };
 
   const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const pad = (n: number) => (n < 10 ? `0${n}` : `${n}`);
-  const dec = (n: number) => n.toFixed(1).replace('.', ',');
+  // Remplace les {clé} d'un texte (les textes viennent du dictionnaire de la page, voir src/i18n).
+  const fmt = (text: string, vars: Record<string, string | number>) => text.replace(/\{(\w+)\}/g, (_, k: string) => String(vars[k] ?? `{${k}}`));
   const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
 
   function hash(t: string) {
@@ -132,6 +147,9 @@ const pad = (n: number) => String(n).padStart(2, '0');
   function init(root: HTMLElement) {
     const modes: Mode[] = JSON.parse(root.dataset.modes ?? '[]');
     const icons: Record<string, string> = JSON.parse(root.dataset.icons ?? '{}');
+    const T = JSON.parse(root.dataset.t ?? '{}') as Strings;
+    const dec = (n: number) => n.toFixed(1).replace('.', T.decimal ?? '.');
+    const kindName = (k: string) => T.kinds[k] ?? k;
     const $ = <T extends Element = HTMLElement>(sel: string) => root.querySelector<T>(sel)!;
     const svgIcon = (k: string) => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${icons[k] ?? ''}</svg>`;
 
@@ -268,7 +286,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
           h +=
             `<g class="pl"><rect class="pb" x="${o.x}" y="${o.y}" width="${PW}" height="${PH}"/><rect class="pn" x="${o.x + 3}" y="${o.y}" width="29" height="${PH}"/><rect class="pa" x="${o.x}" y="${o.y}" width="3" height="${PH}"/>` +
             `<text class="pi" x="${o.x + 17}" y="${o.y + PH / 2 + 4}" text-anchor="middle">${pad(q + 1)}</text>` +
-            `<text class="n" x="${o.x + 42}" y="${o.y + 19}">${esc(step.kind.toUpperCase())}</text><text class="v" x="${o.x + 42}" y="${o.y + 37}">${esc(step.value)}</text></g>`;
+            `<text class="n" x="${o.x + 42}" y="${o.y + 19}">${esc(kindName(step.kind).toUpperCase())}</text><text class="v" x="${o.x + 42}" y="${o.y + 37}">${esc(step.value)}</text></g>`;
         } else {
           h += `<text class="ni" x="${x + 11}" y="${y - 10}">${pad(q + 1)}</text>`;
         }
@@ -276,8 +294,8 @@ const pad = (n: number) => String(n).padStart(2, '0');
       });
 
       cst.innerHTML = `<g class="fade">${h}</g>`;
-      $('[data-cap]').textContent = `Constellation · ${mode.name}`;
-      $('[data-tele]').textContent = `${pad(n)} nœuds · ordre 01→${pad(n)}`;
+      $('[data-cap]').textContent = fmt(T.constellation!, { name: mode.name });
+      $('[data-tele]').textContent = fmt(T.telemetry!, { n: pad(n) });
     }
 
     function hl(n: number) {
@@ -335,28 +353,28 @@ const pad = (n: number) => String(n).padStart(2, '0');
       $('[data-pos]').textContent = `${pad(sel + 1)} / ${pad(modes.length)}`;
       $('[data-seg]').innerHTML = modes.map((_, i) => `<i class="${i === sel ? 'on' : ''}"></i>`).join('');
       const kinds = [...new Set(m.steps.map((s) => s.kind))];
-      $('[data-syst]').textContent = `${pad(kinds.length)} ${kinds.length > 1 ? 'systèmes reliés' : 'système relié'}`;
-      $('[data-sys]').innerHTML = kinds.map((k) => `<span>${esc(k)}</span>`).join('');
-      $('[data-cnt]').textContent = `${pad(m.steps.length)} étapes · ${dec(m.steps.length * 0.3)} s`;
+      $('[data-syst]').textContent = fmt(kinds.length > 1 ? T.systemMany! : T.systemOne!, { n: pad(kinds.length) });
+      $('[data-sys]').innerHTML = kinds.map((k) => `<span>${esc(kindName(k))}</span>`).join('');
+      $('[data-cnt]').textContent = fmt(T.count!, { n: pad(m.steps.length), t: dec(m.steps.length * 0.3) });
       stepsEl.innerHTML =
-        `<li class="${on ? 'on' : ''}"><span class="pn">00</span><span class="ic${on ? ' on' : ''}">${svgIcon(m.icon)}</span><b>${esc(m.name)}</b><small>Point de départ</small><em>T+0,0 s</em></li>` +
+        `<li class="${on ? 'on' : ''}"><span class="pn">00</span><span class="ic${on ? ' on' : ''}">${svgIcon(m.icon)}</span><b>${esc(m.name)}</b><small>${esc(T.start!)}</small><em>T+${dec(0)} s</em></li>` +
         m.steps
           .map(
             (s, i) =>
-              `<li class="${on ? 'on' : ''}"><span class="pn">${pad(i + 1)}</span><span class="ic${on ? ' on' : ''}">${svgIcon(s.kind)}</span><b>${esc(s.kind)}</b><small>${esc(s.detail)}</small><em>T+${dec((i + 1) * 0.3)} s</em></li>`,
+              `<li class="${on ? 'on' : ''}"><span class="pn">${pad(i + 1)}</span><span class="ic${on ? ' on' : ''}">${svgIcon(s.kind)}</span><b>${esc(kindName(s.kind))}</b><small>${esc(s.detail)}</small><em>T+${dec((i + 1) * 0.3)} s</em></li>`,
           )
           .join('');
       go.setAttribute('aria-pressed', String(on));
-      goTitle.textContent = on ? 'Profil actif' : 'Activer ce profil';
-      goHint.textContent = on ? 'Chaîne exécutée' : 'Maintenir pour lancer';
-      $('[data-state]').textContent = on ? 'Profil actif' : 'Profil enregistré';
+      goTitle.textContent = on ? T.isActive! : T.activate!;
+      goHint.textContent = on ? T.chainDone! : T.hold!;
+      $('[data-state]').textContent = on ? T.stateActive! : T.stateSaved!;
       cards.forEach((c, i) => {
         c.setAttribute('aria-pressed', String(i === sel));
         c.classList.toggle('is-active', i === act);
       });
       centerCard();
       constel(m, on, false);
-      $('[data-sr]').textContent = `${m.name}, ${m.steps.length} étapes`;
+      $('[data-sr]').textContent = fmt(T.srSteps!, { name: m.name, n: m.steps.length });
       if (kick && !RM) {
         galaxy.kick();
         scramble(nameEl, m.name);
@@ -410,13 +428,13 @@ const pad = (n: number) => String(n).padStart(2, '0');
     function activate() {
       const m = modes[sel]!;
       if (act === sel) {
-        toast(`${m.name} est déjà actif`);
+        toast(fmt(T.already!, { name: m.name }));
         return;
       }
       act = sel;
       const id = ++run;
       const n = m.steps.length;
-      const failAt = failChk.checked ? m.steps.findIndex((s) => s.kind === 'Éclairage') : -1;
+      const failAt = failChk.checked ? m.steps.findIndex((s) => s.kind === 'lighting') : -1;
       show(true);
 
       const lis = [...stepsEl.querySelectorAll('li')];
@@ -425,7 +443,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
         const li = lis[k];
         li?.classList.add(bad ? 'fail' : 'on');
         li?.querySelector('.ic')?.classList.toggle('on', !bad);
-        if (bad && li) li.querySelector('em')!.textContent = 'Échec';
+        if (bad && li) li.querySelector('em')!.textContent = T.failed!;
         if (k > 0) cst.querySelectorAll(`[data-n="${k - 1}"]`).forEach((e) => e.classList.add(bad ? 'fail' : 'lit'));
       };
 
@@ -441,20 +459,20 @@ const pad = (n: number) => String(n).padStart(2, '0');
 
       const line = (i: number) => {
         const s = m.steps[i]!;
-        if (i === failAt) logAdd('ÉCHEC', 'bad', `${s.kind} → pont Philips Hue injoignable`);
-        else logAdd('OK', 'ok', `${s.kind} → ${s.detail}`);
+        if (i === failAt) logAdd(T.tagFail!, 'bad', fmt(T.stepFail!, { kind: kindName(s.kind) }));
+        else logAdd(T.tagOk!, 'ok', `${kindName(s.kind)} → ${s.detail}`);
       };
-      logAdd('RUN', 'run', `Activation du profil ${m.name}`);
+      logAdd(T.tagRun!, 'run', fmt(T.run!, { name: m.name }));
       m.steps.forEach((_, i) => (RM ? line(i) : setTimeout(() => line(i), 300 * (i + 1))));
       const done = () => {
         if (failAt >= 0) {
-          logAdd('SYS', '', `${m.name} actif · ${n - 1} actions sur ${n}`);
-          logAdd('SYS', '', 'Relancez l’étape ou ignorez-la.');
-        } else logAdd('OK', 'ok', `${m.name} actif · ${n} actions · ${dec(n * 0.3)} s`);
+          logAdd(T.tagSys!, '', fmt(T.doneFail!, { name: m.name, ok: n - 1, n }));
+          logAdd(T.tagSys!, '', T.retry!);
+        } else logAdd(T.tagOk!, 'ok', fmt(T.doneOk!, { name: m.name, n, t: dec(n * 0.3) }));
       };
       if (RM) done();
       else setTimeout(done, 300 * (n + 1));
-      toast(failAt >= 0 ? `${m.name} activé · 1 échec` : `${m.name} activé`);
+      toast(fmt(failAt >= 0 ? T.activatedFail! : T.activated!, { name: m.name }));
     }
 
     /* ---------- « maintenir pour lancer » : 650 ms, le relâcher annule ---------- */
@@ -465,7 +483,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
     function holdStep(now: number) {
       const q = Math.min(1, (now - holdStart) / HOLD);
       go.style.setProperty('--p', `${(q * 100).toFixed(1)}%`);
-      goHint.textContent = `Lancement… ${Math.round(q * 100)} %`;
+      goHint.textContent = fmt(T.launching!, { p: Math.round(q * 100) });
       if (q >= 1) {
         holdRaf = 0;
         go.classList.remove('holding');
@@ -477,7 +495,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
     function holdBegin() {
       if (holdRaf) return;
       if (act === sel) {
-        toast(`${modes[sel]!.name} est déjà actif`);
+        toast(fmt(T.already!, { name: modes[sel]!.name }));
         return;
       }
       if (RM) {
@@ -495,8 +513,8 @@ const pad = (n: number) => String(n).padStart(2, '0');
       holdRaf = 0;
       go.classList.remove('holding');
       go.style.removeProperty('--p');
-      goHint.textContent = 'Maintenir pour lancer';
-      toast('Maintenez pour activer');
+      goHint.textContent = T.hold!;
+      toast(T.holdToast!);
     }
 
     go.addEventListener('pointerdown', (e) => {
@@ -548,8 +566,8 @@ const pad = (n: number) => String(n).padStart(2, '0');
     }
 
     const total = modes.reduce((a, m) => a + m.steps.length, 0);
-    logAdd('SYS', '', `Nexum prêt · ${pad(modes.length)} profils · ${total} actions chargées`);
-    logAdd('SYS', '', 'Aucun profil actif · maintenez « Activer » pour lancer');
+    logAdd(T.tagSys!, '', fmt(T.ready!, { p: pad(modes.length), a: total }));
+    logAdd(T.tagSys!, '', T.idle!);
     fit();
     show(false);
   }

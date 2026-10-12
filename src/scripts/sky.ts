@@ -48,7 +48,8 @@ export function initSky(wrap: HTMLElement, sky: HTMLCanvasElement, twinkle: HTML
     const pw = Math.pow;
     const n1 = noise(w, h, 18);
     const n2 = noise(w, h, 7);
-    const alpha = [0, 0.06, 0.12, 0.21];
+    // Paliers de la bande lactée : environ 40 % plus pâles que dans l'app, pour que le texte posé dessus reste lisible.
+    const alpha = [0, 0.035, 0.07, 0.125];
     const warm = [255, 226, 186];
     const cool = [150, 175, 235];
     const palette = ['255,255,255', '255,226,190', '190,210,255'];

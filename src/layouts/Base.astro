@@ -9,48 +9,69 @@ import '../styles/global.css';
 import Sky from '../components/Sky.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
-import { site, url, type Tint } from '../data/site';
+import { url, type Tint } from '../data/site';
+import { dict, langs, type Lang } from '../i18n';
+import type { Alt } from '../i18n/routes';
 
 interface Props {
+  lang: Lang;
+  /** Adresse de la même page dans chaque langue (sélecteur de langue, hreflang). */
+  alt: Alt;
   title?: string;
   description?: string;
   /** Teinte de profil de la page (une seule par page, guide de marque). Violet « Gaming » par défaut. */
   tint?: Tint;
 }
 
-const { title, description = site.description, tint = [150, 90, 255] } = Astro.props;
-const fullTitle = title ? `${title} · Nexum` : `Nexum · ${site.tagline}`;
+const { lang, alt, title, description, tint = [150, 90, 255] } = Astro.props;
+const t = dict[lang];
+const fullTitle = title ? `${title} · Nexum` : `Nexum · ${t.meta.tagline}`;
+const desc = description ?? t.meta.description;
 const canonical = new URL(Astro.url.pathname, Astro.site);
+const abs = (path: string) => new URL(path, Astro.site).href;
 ---
 
 <!doctype html>
-<html lang="fr" style={`--tint:${tint.join(',')}`}>
+<html lang={lang} style={`--tint:${tint.join(',')}`}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{fullTitle}</title>
-    <meta name="description" content={description} />
+    <meta name="description" content={desc} />
     <link rel="canonical" href={canonical} />
+    {langs.map((l) => <link rel="alternate" hreflang={l} href={abs(alt[l])} />)}
+    <link rel="alternate" hreflang="x-default" href={abs(alt.en)} />
     <link rel="icon" type="image/svg+xml" href={url('favicon.svg')} />
     <link rel="apple-touch-icon" href={url('apple-touch-icon.png')} />
     <link rel="sitemap" href={url('sitemap-index.xml')} />
     <meta property="og:type" content="website" />
     <meta property="og:title" content={fullTitle} />
-    <meta property="og:description" content={description} />
+    <meta property="og:description" content={desc} />
     <meta property="og:url" content={canonical} />
-    <meta property="og:image" content={new URL(url('og.png'), Astro.site)} />
+    <meta property="og:locale" content={t.locale} />
+    <meta property="og:image" content={abs(url('og.png'))} />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="theme-color" content="#000000" />
+    {
+      lang === 'en' && (
+        <script is:inline define:vars={{ fr: alt.fr }}>
+          // L'anglais est la langue par défaut. Si le visiteur a déjà choisi le français (sélecteur de l'en-tête), on l'y renvoie.
+          try {
+            if (localStorage.getItem('nexum-lang') === 'fr') location.replace(fr + location.hash);
+          } catch (e) {}
+        </script>
+      )
+    }
   </head>
   <body>
     <Sky />
     <div class="app">
-      <a class="skip" href="#contenu">Aller au contenu</a>
-      <Header />
-      <main id="contenu">
+      <a class="skip" href="#content">{t.nav.skip}</a>
+      <Header lang={lang} alt={alt} />
+      <main id="content">
         <slot />
       </main>
-      <Footer />
+      <Footer lang={lang} />
     </div>
   </body>
 </html>

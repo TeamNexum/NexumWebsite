@@ -1,14 +1,25 @@
 ---
+// GitHub Pages sert cette page pour toute adresse inconnue, quelle que soit la langue : elle est donc bilingue.
 import Base from '../layouts/Base.astro';
-import { url } from '../data/site';
+import { dict } from '../i18n';
+import { paths } from '../i18n/routes';
+
+const en = dict.en.notFound;
+const fr = dict.fr.notFound;
 ---
 
-<Base title="Page introuvable">
+<Base lang="en" alt={{ en: paths.home('en'), fr: paths.home('fr') }} title={en.title}>
   <section class="wrap lost">
-    <p class="lab">Erreur 404</p>
-    <h1>Cette page ne s’est pas alignée.</h1>
-    <p class="lead">Le lien est peut-être ancien, ou la page a changé d’adresse.</p>
-    <a class="btn btn-primary" href={url()}>Retour à l’accueil</a>
+    <p class="lab">{en.lab}</p>
+    <h1>{en.heading}</h1>
+    <p class="lead">{en.lead}</p>
+    <a class="btn btn-primary" href={paths.home('en')}>{en.back}</a>
+
+    <div class="fr" lang="fr">
+      <p class="lab">{fr.lab}</p>
+      <p>{fr.heading} {fr.lead}</p>
+      <a href={paths.home('fr')}>{fr.back}</a>
+    </div>
   </section>
 </Base>
 
@@ -20,5 +31,20 @@ import { url } from '../data/site';
     min-height: 60vh;
     align-content: center;
     padding-block: clamp(64px, 12vw, 140px);
+  }
+
+  .fr {
+    display: grid;
+    gap: 10px;
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px dashed var(--line-strong);
+    color: var(--muted);
+  }
+
+  .fr a {
+    width: fit-content;
+    color: var(--text);
+    text-underline-offset: 4px;
   }
 </style>

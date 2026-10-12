@@ -1,31 +1,41 @@
 ---
 import Mark from './Mark.astro';
-import { segments, site, team, url } from '../data/site';
+import { getSegments, site, team } from '../data/site';
+import { dict, fmt, joinNames, type Lang } from '../i18n';
+import { paths } from '../i18n/routes';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = dict[lang];
+const segments = getSegments(lang);
 ---
 
 <footer class="foot">
   <div class="wrap grid">
     <div class="about">
-      <a class="brand" href={url()} aria-label="Nexum, accueil"><Mark size={28} /><span>NEXUM</span></a>
-      <p>{site.tagline}</p>
-      <p class="small">Projet EIP Epitech, conçu par {team.slice(0, -1).join(', ')} et {team.at(-1)}.</p>
+      <a class="brand" href={paths.home(lang)} aria-label={t.nav.home}><Mark size={28} /><span>NEXUM</span></a>
+      <p>{t.meta.tagline}</p>
+      <p class="small">{fmt(t.footer.credit, { names: joinNames(lang, team) })}</p>
     </div>
 
-    <nav aria-label="Pour qui">
-      <p class="lab">Pour qui</p>
-      {segments.map((s) => <a href={url(`pour/${s.slug}`)}>{s.label}</a>)}
+    <nav aria-label={t.footer.audience}>
+      <p class="lab">{t.footer.audience}</p>
+      {segments.map((s) => <a href={paths.segment(lang, s.slug)}>{s.label}</a>)}
     </nav>
 
-    <nav aria-label="Liens">
-      <p class="lab">Nexum</p>
-      <a href={url('#beta')}>Rejoindre la bêta</a>
-      <a href={site.github} rel="noopener">GitHub</a>
-      <a href={url('confidentialite')}>Confidentialité</a>
+    <nav aria-label={t.footer.nexum}>
+      <p class="lab">{t.footer.nexum}</p>
+      <a href={paths.section(lang, 'beta')}>{t.footer.join}</a>
+      <a href={site.github} rel="noopener">{t.footer.github}</a>
+      <a href={paths.privacy(lang)}>{t.footer.privacy}</a>
     </nav>
   </div>
 
   <div class="wrap base">
-    <span>Nexum / Projet EIP Epitech</span>
+    <span>{t.footer.base}</span>
     <span>© {new Date().getFullYear()} Nexum</span>
   </div>
 </footer>

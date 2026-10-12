@@ -9,7 +9,8 @@ Le site sert aussi à la validation marché du projet EIP : le formulaire de la 
 - [Astro](https://astro.build) 7, site 100 % statique, sans framework JS côté client.
 - CSS maison avec les tokens du guide de marque Nexum (direction artistique « Galaxy » v1.0) ; polices hébergées avec le site (Press Start 2P, Silkscreen, JetBrains Mono via Fontsource).
 - Un seul thème, toujours sombre, comme l’application : ciel et galaxie en pixels (canvas, trame de Bayer), cadres aux coins crantés, une seule teinte de profil par page (violet par défaut, celle du mode sur les pages joueurs / streamers / télétravail).
-- Ton du guide : vouvoiement, aucune exclamation, aucun emoji, titres de six mots au plus.
+- Ton du guide : calme, direct, aucune exclamation, aucun emoji, titres de six mots au plus (vouvoiement en français).
+- Deux langues : **anglais** (principale, à la racine : `/`, `/for/gamers`, `/privacy`) et **français** (`/fr/`, `/fr/pour/joueurs`, `/fr/confidentialite`). Le sélecteur EN / FR de l’en-tête garde le choix dans le navigateur (`localStorage`, clé `nexum-lang`) : un visiteur qui choisit le français y est renvoyé quand il ouvre `/`. Les anciennes adresses françaises (`/pour/...`, `/confidentialite`) redirigent vers `/fr/...`.
 
 ## Lancer en local
 
@@ -30,21 +31,40 @@ npm run preview
 
 Copier `.env.example` en `.env` pour le développement local.
 
+## Formulaire de la bêta
+
+Le site est statique : le formulaire envoie ses réponses à un service externe. Sans lui, le bouton reste désactivé (« Inscriptions bientôt ouvertes »). Mise en route (2 minutes, avec [Formspree](https://formspree.io), gratuit) :
+
+1. Créer un compte, puis **New form** : indiquer l’e-mail de l’équipe qui recevra les inscriptions. Formspree donne une URL du type `https://formspree.io/f/xxxxxxxx`.
+2. Sur GitHub : **Settings → Secrets and variables → Actions → Variables → New repository variable**, nom `PUBLIC_FORM_ENDPOINT`, valeur = cette URL.
+3. Relancer le déploiement (Actions → Deploy → *Run workflow*, ou un push sur `main`). La valeur est lue au **build** : sans nouveau build, le site ne la voit pas.
+4. Tester une inscription sur le site publié ; elle arrive par e-mail et dans l’onglet *Submissions* de Formspree.
+
+Tout service qui accepte un `POST` multipart avec l’en-tête `Accept: application/json` et répond `200` convient (Getform, Basin, un petit serveur à soi…).
+
+Ce que le formulaire fait : validation de l’e-mail et du consentement (messages sous le champ, focus sur l’erreur), refus du service affiché sur le champ e-mail (422), message d’erreur si le service est injoignable ou ne répond pas en 15 s, un seul envoi à la fois, écran de confirmation à la place du formulaire une fois l’envoi réussi, et un champ piège `_gotcha` contre les robots. Chaque inscription porte : `email`, `profil`, `agacement`, `entretien`, `consentement`, `segment` (page d’origine : `accueil`, `joueurs`, `streamers`, `teletravail`), `lang` (`en` / `fr`), `page`, et les `utm_*` du lien suivi.
+
 ## Structure
 
 ```
 src/
-  data/site.ts          contenu : modes de démo (avec leur teinte), intégrations, cibles, FAQ, équipe
+  i18n/en.ts, fr.ts     TOUS les textes affichés, par langue (fr.ts est typé sur en.ts : une clé manquante casse le build)
+  i18n/index.ts         langues, fmt() pour les {variables}
+  i18n/routes.ts        adresses des pages par langue (paths.home, paths.segment, paths.privacy…)
+  data/site.ts          données sans texte : teintes et icônes des modes, ordre des étapes, segments, équipe
   data/icons.ts         icônes de la charte (24 × 24, contours de 1,5 px)
-  layouts/Base.astro    <head>, ciel de fond, en-tête et pied de page
+  layouts/Base.astro    <head> (hreflang, canonical), ciel de fond, en-tête et pied de page
   scripts/              sky.ts (Voie lactée pixel), galaxy.ts (galaxie pixel animée)
-  components/           Header, Footer, Sky, Mark (logo), Hero (couverture),
+  components/           Header (+ sélecteur de langue), Footer, Sky, Mark (logo), Hero (couverture),
                         ModeStage (démo : constellation, « maintenir pour lancer », journal), Waitlist (formulaire)
-  pages/                accueil, pour/[segment] (joueurs, streamers, teletravail), confidentialite, 404
+  views/                Home, Segment, Privacy : une seule version, appelée avec `lang="en"` ou `lang="fr"`
+  pages/                index, for/[segment], privacy (anglais) ; fr/index, fr/pour/[segment], fr/confidentialite (français) ; 404
   styles/global.css     tokens du guide, cadre cranté, étiquettes, boutons
 ```
 
 **Règle de contenu :** ne marquer « disponible » que ce qui marche dans le prototype (`crates/nexum-schema/src/action_types.rs` du dépôt Nexum). Le reste est « prévu ».
+
+**Modifier un texte :** toujours dans `src/i18n/en.ts` ET `src/i18n/fr.ts`. **Ajouter une langue :** copier `en.ts` en `xx.ts`, l’ajouter dans `i18n/index.ts` (`Lang`, `langs`, `dict`) et dans `i18n/routes.ts`, puis créer les pages sous `src/pages/xx/`.
 
 ## Déploiement
 

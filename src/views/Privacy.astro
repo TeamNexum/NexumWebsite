@@ -1,0 +1,66 @@
+---
+import Base from '../layouts/Base.astro';
+import { site } from '../data/site';
+import { dict, type Lang } from '../i18n';
+import { paths } from '../i18n/routes';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = dict[lang].privacy;
+---
+
+<Base lang={lang} alt={{ en: paths.privacy('en'), fr: paths.privacy('fr') }} title={t.lab} description={t.metaDescription}>
+  <article class="wrap page">
+    <p class="lab">{t.lab}</p>
+    <h1>{t.title}</h1>
+
+    {
+      t.sections.map((s) => (
+        <>
+          <h2>{s.h}</h2>
+          <p>{s.p}</p>
+        </>
+      ))
+    }
+
+    <h2>{t.rights.h}</h2>
+    <p>
+      {t.rights.before}<a href={site.github} rel="noopener">{t.rights.link}</a>{t.rights.after}
+    </p>
+
+    <p class="back"><a href={paths.home(lang)}>{t.back}</a></p>
+  </article>
+</Base>
+
+<style>
+  .page {
+    display: grid;
+    gap: 18px;
+    max-width: 800px;
+    padding-block: clamp(56px, 9vw, 104px);
+  }
+
+  h1 {
+    margin-bottom: 20px;
+  }
+
+  h2 {
+    margin-top: 28px;
+    font-size: clamp(14px, 1.6vw, 18px);
+  }
+
+  p {
+    color: var(--soft);
+  }
+
+  a {
+    text-underline-offset: 4px;
+  }
+
+  .back {
+    margin-top: 32px;
+  }
+</style>

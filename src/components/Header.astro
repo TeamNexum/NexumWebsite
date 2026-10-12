@@ -1,34 +1,54 @@
 ---
 import Mark from './Mark.astro';
-import { url } from '../data/site';
+import { dict, langs, type Lang } from '../i18n';
+import { paths, type Alt } from '../i18n/routes';
+
+interface Props {
+  lang: Lang;
+  alt: Alt;
+}
+
+const { lang, alt } = Astro.props;
+const t = dict[lang].nav;
 
 // Le numéro est celui de la section sur la page d'accueil.
 const links = [
-  { n: '02', id: 'fonctionnement', label: 'Fonctionnement' },
-  { n: '03', id: 'modes', label: 'Modes' },
-  { n: '04', id: 'integrations', label: 'Intégrations' },
-  { n: '06', id: 'pour-qui', label: 'Pour qui' },
-  { n: '08', id: 'faq', label: 'FAQ' },
+  { n: '02', id: 'how-it-works', label: t.items.how },
+  { n: '03', id: 'modes', label: t.items.modes },
+  { n: '04', id: 'integrations', label: t.items.integrations },
+  { n: '06', id: 'use-cases', label: t.items.audience },
+  { n: '08', id: 'faq', label: t.items.faq },
 ];
 ---
 
 <header class="top">
   <div class="in">
-    <a class="logo" href={url()} aria-label="Nexum, accueil"><Mark size={22} /><span>NEXUM</span></a>
+    <a class="logo" href={paths.home(lang)} aria-label={t.home}><Mark size={22} /><span>NEXUM</span></a>
 
-    <nav class="tabs" aria-label="Navigation principale">
+    <nav class="tabs" aria-label={t.main}>
       {links.map((l) => (
-        <a href={url(`#${l.id}`)} data-spy={l.id}><i>{l.n}</i>{l.label}</a>
+        <a href={paths.section(lang, l.id)} data-spy={l.id}><i>{l.n}</i>{l.label}</a>
       ))}
     </nav>
 
     <div class="nr">
-      <a class="btn btn-primary cta" href={url('#beta')}>Rejoindre la bêta</a>
+      <div class="lang" role="group" aria-label={t.language}>
+        {
+          langs.map((l) =>
+            l === lang ? (
+              <span lang={l} aria-current="true">{l.toUpperCase()}</span>
+            ) : (
+              <a href={alt[l]} lang={l} hreflang={l} data-lang={l}>{l.toUpperCase()}</a>
+            ),
+          )
+        }
+      </div>
+      <a class="btn btn-primary cta" href={paths.section(lang, 'beta')}>{t.cta}</a>
       <details class="menu">
-        <summary aria-label="Menu"><span>Menu</span></summary>
-        <nav class="sheet panel" aria-label="Navigation (mobile)">
+        <summary aria-label={t.menu}><span>{t.menu}</span></summary>
+        <nav class="sheet panel" aria-label={t.mobile}>
           {links.map((l) => (
-            <a href={url(`#${l.id}`)}><i>{l.n}</i>{l.label}</a>
+            <a href={paths.section(lang, l.id)}><i>{l.n}</i>{l.label}</a>
           ))}
         </nav>
       </details>
@@ -52,6 +72,17 @@ const links = [
     };
     addEventListener('scroll', mark, { passive: true });
     mark();
+  }
+
+  // Le choix de langue est gardé dans le navigateur : l'anglais est la langue par défaut, un visiteur qui choisit le français y revient.
+  for (const link of document.querySelectorAll<HTMLAnchorElement>('.lang a[data-lang]')) {
+    link.addEventListener('click', () => {
+      try {
+        localStorage.setItem('nexum-lang', link.dataset.lang!);
+      } catch {
+        // Stockage indisponible (navigation privée) : le choix vaut pour cette page seulement.
+      }
+    });
   }
 
   // Menu mobile : se ferme au choix d'un lien, ou d'un clic ailleurs.
@@ -176,6 +207,40 @@ const links = [
     margin-left: auto;
   }
 
+  /* Sélecteur de langue : deux cases carrées, la langue courante en blanc. */
+  .lang {
+    display: flex;
+    border: 1px solid var(--line-strong);
+    background: #000;
+  }
+
+  .lang a,
+  .lang span {
+    display: grid;
+    place-items: center;
+    min-width: 36px;
+    height: 38px;
+    padding: 0 8px;
+    font: 700 11px/1 var(--font-label);
+    letter-spacing: 0.1em;
+    text-decoration: none;
+  }
+
+  .lang a {
+    color: var(--muted);
+    transition: background var(--step-hover), color var(--step-hover);
+  }
+
+  .lang a:hover {
+    background: rgb(255 255 255 / 0.12);
+    color: #fff;
+  }
+
+  .lang span {
+    background: #fff;
+    color: #000;
+  }
+
   .cta {
     min-height: 40px;
     padding: 0 16px;
@@ -255,9 +320,19 @@ const links = [
   }
 
   @media (max-width: 460px) {
+    .nr {
+      gap: 8px;
+    }
+
+    .lang a,
+    .lang span {
+      min-width: 32px;
+      padding: 0 6px;
+    }
+
     .cta {
-      padding: 0 12px;
-      font-size: 11px;
+      padding: 0 10px;
+      font-size: 10px;
     }
 
     .logo span {

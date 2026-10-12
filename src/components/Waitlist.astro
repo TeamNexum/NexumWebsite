@@ -2,99 +2,179 @@
 // Inscription à la bêta + recrutement pour les entretiens utilisateurs (validation marché).
 // Chaque envoi porte le segment de la page et les paramètres UTM : on compare ainsi
 // quelles cibles répondent le plus (stratégie « du pêcheur » conseillée par le mentor).
-import { url } from '../data/site';
+import { dict, type Lang } from '../i18n';
+import { paths } from '../i18n/routes';
 
 interface Props {
+  lang: Lang;
+  /** Valeur envoyée avec le formulaire (la page d'origine) : elle ne change pas avec la langue, pour comparer les cibles. */
   segment?: string;
   title?: string;
 }
 
-const { segment = 'accueil', title = 'Un clic. Tout votre setup.' } = Astro.props;
+const { lang, segment = 'accueil', title } = Astro.props;
+const t = dict[lang].waitlist;
 const endpoint = import.meta.env.PUBLIC_FORM_ENDPOINT ?? '';
-const profiles = [
-  { value: 'joueurs', label: 'Je joue sur PC' },
-  { value: 'streamers', label: 'Je streame ou crée du contenu' },
-  { value: 'teletravail', label: 'Je travaille sur mon ordinateur' },
-  { value: 'autre', label: 'Autre' },
-];
+// Les valeurs restent celles d'origine (joueurs, streamers…) ; seuls les libellés changent.
+const profiles = (['joueurs', 'streamers', 'teletravail', 'autre'] as const).map((value) => ({ value, label: t.profiles[value] }));
+const messages = {
+  checkEmail: t.checkEmail,
+  checkConsent: t.checkConsent,
+  sending: t.sending,
+  success: t.success,
+  error: t.error,
+  offline: t.offline,
+  submit: t.submit,
+};
 ---
 
 <section class="section beta" id="beta">
   <div class="wrap inner">
     <div class="intro">
-      <p class="lab">Bientôt en bêta</p>
-      <h2>{title}</h2>
+      <p class="lab">{t.lab}</p>
+      <h2>{title ?? t.title}</h2>
       <p class="lead">
-        <strong>Inscrivez-vous pour tester Nexum avant tout le monde.</strong> Vous recevrez un e-mail à l’ouverture de la bêta, rien d’autre. Si vous avez 20 minutes, dites-nous ce qui vous agace sur votre ordinateur : cela décidera des prochains modes.
+        <strong>{t.leadStrong}</strong>{t.lead}
       </p>
     </div>
 
-    <form class="form panel" data-waitlist data-endpoint={endpoint} novalidate>
-      <input type="hidden" name="segment" value={segment} />
-      <div class="field">
-        <label for={`email-${segment}`}>E-mail</label>
-        <input id={`email-${segment}`} name="email" type="email" autocomplete="email" required placeholder="vous@exemple.fr" />
-      </div>
+    <form class="form panel" data-waitlist data-endpoint={endpoint} data-messages={JSON.stringify(messages)} novalidate>
+      <div class="fields" data-fields>
+        <input type="hidden" name="segment" value={segment} />
+        <input type="hidden" name="lang" value={lang} />
+        <input type="hidden" name="_subject" value="Nexum · beta sign-up" />
 
-      <fieldset class="field">
-        <legend>Vous êtes plutôt</legend>
-        <div class="options">
-          {profiles.map((p) => (
-            <label class="option">
-              <input type="radio" name="profil" value={p.value} checked={p.value === segment} />
-              <span>{p.label}</span>
-            </label>
-          ))}
+        <!-- Piège à robots : un humain ne voit pas ce champ. Rempli, l'envoi est ignoré (convention Formspree : _gotcha). -->
+        <div class="hp" aria-hidden="true">
+          <label>{t.honeypot}<input type="text" name="_gotcha" tabindex="-1" autocomplete="off" /></label>
         </div>
-      </fieldset>
 
-      <div class="field">
-        <label for={`pain-${segment}`}>Ce qui vous agace le plus sur votre ordinateur <span class="opt">(facultatif)</span></label>
-        <textarea id={`pain-${segment}`} name="agacement" rows="3" maxlength="1000" placeholder="Ex. : je rouvre les mêmes 6 applis chaque matin…"></textarea>
+        <div class="field">
+          <label for={`email-${segment}`}>{t.email}</label>
+          <input
+            id={`email-${segment}`}
+            name="email"
+            type="email"
+            autocomplete="email"
+            inputmode="email"
+            maxlength="254"
+            required
+            placeholder={t.emailPlaceholder}
+            aria-describedby={`email-err-${segment}`}
+          />
+          <p class="err" id={`email-err-${segment}`} data-err="email" hidden>{t.checkEmail}</p>
+        </div>
+
+        <fieldset class="field">
+          <legend>{t.legend}</legend>
+          <div class="options">
+            {profiles.map((p) => (
+              <label class="option">
+                <input type="radio" name="profil" value={p.value} checked={p.value === segment} />
+                <span>{p.label}</span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+
+        <div class="field">
+          <label for={`pain-${segment}`}>{t.pain} <span class="opt">{t.optional}</span></label>
+          <textarea id={`pain-${segment}`} name="agacement" rows="3" maxlength="1000" placeholder={t.painPlaceholder}></textarea>
+        </div>
+
+        <label class="check">
+          <input type="checkbox" name="entretien" value="oui" />
+          <span class="bx" aria-hidden="true"></span>
+          <span>{t.interview}</span>
+        </label>
+
+        <div class="field">
+          <label class="check">
+            <input type="checkbox" name="consentement" value="oui" required aria-describedby={`consent-err-${segment}`} />
+            <span class="bx" aria-hidden="true"></span>
+            <span>{t.consent} <a href={paths.privacy(lang)}>{t.learnMore}</a></span>
+          </label>
+          <p class="err" id={`consent-err-${segment}`} data-err="consent" hidden>{t.checkConsent}</p>
+        </div>
+
+        <button class="btn btn-primary" type="submit" disabled={!endpoint}>
+          {endpoint ? t.submit : t.soon}
+        </button>
+        <p class="status" role="status" aria-live="polite" data-status></p>
       </div>
 
-      <label class="check">
-        <input type="checkbox" name="entretien" value="oui" />
-        <span class="bx" aria-hidden="true"></span>
-        <span>OK pour un entretien de 20 minutes avec l’équipe (visio ou message).</span>
-      </label>
-
-      <label class="check">
-        <input type="checkbox" name="consentement" value="oui" required />
-        <span class="bx" aria-hidden="true"></span>
-        <span>J’accepte que Nexum garde mon e-mail et mes réponses pour me recontacter au sujet de la bêta. <a href={url('confidentialite')}>En savoir plus</a></span>
-      </label>
-
-      <button class="btn btn-primary" type="submit" disabled={!endpoint}>
-        {endpoint ? 'Rejoindre la bêta' : 'Inscriptions bientôt ouvertes'}
-      </button>
-      <p class="status" role="status" aria-live="polite" data-status></p>
+      <!-- Affiché à la place du formulaire une fois l'envoi confirmé par le serveur : on ne peut pas s'inscrire deux fois par erreur. -->
+      <div class="done" data-done hidden role="status" tabindex="-1">
+        <span class="tag">OK</span>
+        <h3>{t.successTitle}</h3>
+        <p>{t.success}</p>
+      </div>
     </form>
   </div>
 </section>
 
 <script>
+  const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+  const TIMEOUT = 15000; // un serveur qui ne répond pas ne doit pas laisser le bouton bloqué sur « Envoi… »
+
   for (const form of document.querySelectorAll<HTMLFormElement>('[data-waitlist]')) {
     const endpoint = form.dataset.endpoint;
+    const msg: Record<string, string> = JSON.parse(form.dataset.messages ?? '{}');
+    const fields = form.querySelector<HTMLElement>('[data-fields]')!;
+    const done = form.querySelector<HTMLElement>('[data-done]')!;
     const status = form.querySelector<HTMLElement>('[data-status]')!;
     const button = form.querySelector<HTMLButtonElement>('button[type=submit]')!;
+    const email = form.querySelector<HTMLInputElement>('input[name=email]')!;
+    const consent = form.querySelector<HTMLInputElement>('input[name=consentement]')!;
+    let sending = false;
+
+    const say = (text: string, kind: 'err' | '' = '') => {
+      status.textContent = text;
+      status.dataset.kind = kind;
+    };
+    // Un champ invalide est signalé par du texte, une bordure en tirets et aria-invalid : jamais par la couleur seule.
+    const flag = (input: HTMLInputElement, key: string, bad: boolean) => {
+      input.setAttribute('aria-invalid', String(bad));
+      form.querySelector<HTMLElement>(`[data-err="${key}"]`)!.hidden = !bad;
+    };
+
+    // L'erreur disparaît dès que le champ est corrigé.
+    email.addEventListener('input', () => {
+      if (email.getAttribute('aria-invalid') === 'true' && EMAIL.test(email.value.trim())) flag(email, 'email', false);
+    });
+    consent.addEventListener('change', () => {
+      if (consent.checked) flag(consent, 'consent', false);
+    });
+
+    function finish() {
+      form.reset();
+      fields.hidden = true;
+      done.hidden = false;
+      done.focus();
+    }
 
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
-      if (!endpoint) return;
+      if (!endpoint || sending) return;
+      say('');
 
       const data = new FormData(form);
-      const email = String(data.get('email') ?? '').trim();
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        status.textContent = 'Vérifiez votre adresse e-mail.';
-        form.querySelector<HTMLInputElement>('input[name=email]')?.focus();
-        return;
-      }
-      if (!data.get('consentement')) {
-        status.textContent = 'Cochez la case de consentement pour que nous puissions vous recontacter.';
+      // Champ piège rempli : c'est un robot. On fait comme si tout allait bien, sans rien envoyer.
+      if (String(data.get('_gotcha') ?? '') !== '') {
+        finish();
         return;
       }
 
+      const mail = email.value.trim();
+      const emailOk = EMAIL.test(mail);
+      flag(email, 'email', !emailOk);
+      flag(consent, 'consent', !consent.checked);
+      if (!emailOk) return email.focus();
+      if (!consent.checked) return consent.focus();
+
+      if (!navigator.onLine) return say(msg.offline ?? '', 'err');
+
+      data.set('email', mail);
       const params = new URLSearchParams(location.search);
       for (const key of ['utm_source', 'utm_medium', 'utm_campaign']) {
         const value = params.get(key);
@@ -102,21 +182,35 @@ const profiles = [
       }
       data.set('page', location.pathname);
 
+      sending = true;
       button.disabled = true;
-      status.textContent = 'Envoi…';
+      button.textContent = msg.sending ?? '';
+      const abort = new AbortController();
+      const timer = setTimeout(() => abort.abort(), TIMEOUT);
       try {
         const res = await fetch(endpoint, {
           method: 'POST',
           headers: { Accept: 'application/json' },
           body: data,
+          signal: abort.signal,
         });
+        // 422 : le service refuse l'e-mail (Formspree). On le montre sur le champ plutôt qu'un message générique.
+        if (res.status === 422) {
+          flag(email, 'email', true);
+          email.focus();
+          return;
+        }
         if (!res.ok) throw new Error(String(res.status));
-        form.reset();
-        status.textContent = 'Inscription enregistrée. Un e-mail vous préviendra à l’ouverture de la bêta.';
+        const body = (await res.json().catch(() => ({}))) as { ok?: boolean };
+        if (body.ok === false) throw new Error('refused');
+        finish();
       } catch {
-        status.textContent = 'L’envoi a échoué. Réessayez dans un instant.';
+        say(msg.error ?? '', 'err');
       } finally {
+        clearTimeout(timer);
+        sending = false;
         button.disabled = false;
+        button.textContent = msg.submit ?? '';
       }
     });
   }
@@ -136,10 +230,76 @@ const profiles = [
   }
 
   .form {
+    padding: clamp(22px, 3vw, 32px);
+  }
+
+  .fields {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     gap: 22px;
-    padding: clamp(22px, 3vw, 32px);
+  }
+
+  /* `display: grid` l'emporte sur l'attribut hidden : on le rétablit pour ces éléments. */
+  .fields[hidden],
+  .done[hidden],
+  .err[hidden] {
+    display: none;
+  }
+
+  /* Piège à robots : hors écran (pas display:none, que certains robots savent éviter), invisible pour les humains. */
+  .hp {
+    position: absolute;
+    left: -10000px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  /* Message d'erreur d'un champ : carré « × » devant le texte, la bordure du champ passe en tirets blancs. */
+  .err {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin: 0;
+    font-size: 12.5px;
+    color: #fff;
+  }
+
+  .err::before {
+    content: '×';
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 16px;
+    height: 16px;
+    border: 1px solid #fff;
+    font: 700 11px/1 var(--font-label);
+  }
+
+  .field input[aria-invalid='true'] {
+    border: 1px dashed #fff;
+  }
+
+  .field .check input[aria-invalid='true'] + .bx {
+    border: 1px dashed #fff;
+  }
+
+  .done {
+    display: grid;
+    gap: 14px;
+    justify-items: start;
+    padding-block: 8px;
+    outline: none;
+  }
+
+  .done h3 {
+    font: clamp(13px, 1.5vw, 16px) / 1.6 var(--font-title);
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  .done p {
+    color: var(--soft);
   }
 
   .field {
@@ -291,6 +451,24 @@ const profiles = [
     min-height: 1.6em;
     font-size: 13px;
     color: var(--soft);
+  }
+
+  .status[data-kind='err'] {
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
+    color: #fff;
+  }
+
+  .status[data-kind='err']::before {
+    content: '×';
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 16px;
+    height: 16px;
+    border: 1px solid #fff;
+    font: 700 11px/1 var(--font-label);
   }
 
   @media (max-width: 860px) {

@@ -11,5 +11,11 @@ export default defineConfig({
   site,
   base,
   trailingSlash: 'ignore',
-  integrations: [sitemap()],
+  // L'anglais est à la racine, le français sous /fr/.
+  // Les anciennes adresses (site d'abord uniquement en français) redirigent vers leur équivalent français.
+  // (Astro préfixe les sources avec `base`, pas les destinations : on l'ajoute ici.)
+  redirects: Object.fromEntries(
+    ['pour/joueurs', 'pour/streamers', 'pour/teletravail', 'confidentialite'].map((page) => [`/${page}`, `${base.replace(/\/$/, '')}/fr/${page}`]),
+  ),
+  integrations: [sitemap({ i18n: { defaultLocale: 'en', locales: { en: 'en', fr: 'fr' } } })],
 });

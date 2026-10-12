@@ -1,41 +1,49 @@
 ---
-// Une page par cible (joueurs, streamers, télétravail). Chaque page envoie son segment
+// Une page par cible (joueurs, streamers, télétravail), commune aux deux langues. Chaque page envoie son segment
 // avec le formulaire : on mesure quelle cible s'inscrit le plus.
-import Base from '../../layouts/Base.astro';
-import Hero from '../../components/Hero.astro';
-import ModeStage from '../../components/ModeStage.astro';
-import Waitlist from '../../components/Waitlist.astro';
-import { demoModes, segments, site, type Segment } from '../../data/site';
-
-export function getStaticPaths() {
-  return segments.map((segment) => ({ params: { segment: segment.slug }, props: { segment } }));
-}
+import Base from '../layouts/Base.astro';
+import Hero from '../components/Hero.astro';
+import ModeStage from '../components/ModeStage.astro';
+import Waitlist from '../components/Waitlist.astro';
+import { getModes, getSegments, type SegmentSlug } from '../data/site';
+import { dict, type Lang } from '../i18n';
+import { paths } from '../i18n/routes';
 
 interface Props {
-  segment: Segment;
+  lang: Lang;
+  slug: SegmentSlug;
 }
 
-const { segment } = Astro.props;
+const { lang, slug } = Astro.props;
+const t = dict[lang];
+const s = t.segmentPage;
+const segment = getSegments(lang).find((x) => x.slug === slug)!;
 // Une seule teinte par page : celle du profil de la cible.
-const tint = (demoModes.find((m) => m.id === segment.mode) ?? demoModes[0]!).tint;
+const tint = (getModes(lang).find((m) => m.id === segment.mode) ?? getModes(lang)[0]!).tint;
 ---
 
-<Base title={`Nexum pour les ${segment.label.toLowerCase()}`} description={segment.lead} tint={tint}>
+<Base
+  lang={lang}
+  alt={{ en: paths.segment('en', slug), fr: paths.segment('fr', slug) }}
+  title={segment.metaTitle}
+  description={segment.lead}
+  tint={tint}
+>
   <Hero eyebrow={`Nexum / ${segment.label}`} tint={tint}>
     <Fragment slot="title">{segment.title}</Fragment>
     <p class="lead">{segment.lead}</p>
     <div class="ctas">
-      <a class="btn btn-primary" href="#beta">Rejoindre la bêta</a>
-      <a class="btn" href="#demo">Essayer le mode</a>
+      <a class="btn btn-primary" href="#beta">{s.primary}</a>
+      <a class="btn" href="#demo">{s.secondary}</a>
     </div>
-    <p class="meta">{site.stage}</p>
+    <p class="meta">{t.meta.stage}</p>
   </Hero>
 
   <section class="section">
     <div class="wrap">
       <div class="sec-head">
-        <p class="lab">01 / Pourquoi Nexum</p>
-        <h2>Ce que ça change pour vous.</h2>
+        <p class="lab">{s.whyLab}</p>
+        <h2>{s.whyTitle}</h2>
       </div>
       <div class="cards">
         {segment.pains.map((p, i) => (
@@ -52,15 +60,15 @@ const tint = (demoModes.find((m) => m.id === segment.mode) ?? demoModes[0]!).tin
   <section class="section" id="demo">
     <div class="wrap">
       <div class="sec-head">
-        <p class="lab">02 / Essai</p>
-        <h2>Votre mode, étape par étape.</h2>
-        <p>Maintenez « Activer ». Chaque action affiche son résultat, même quand quelque chose échoue.</p>
+        <p class="lab">{s.demoLab}</p>
+        <h2>{s.demoTitle}</h2>
+        <p>{s.demoIntro}</p>
       </div>
-      <ModeStage initial={segment.mode} />
+      <ModeStage lang={lang} initial={segment.mode} />
     </div>
   </section>
 
-  <Waitlist segment={segment.slug} title="Rejoignez la bêta." />
+  <Waitlist lang={lang} segment={segment.slug} title={s.waitlistTitle} />
 </Base>
 
 <style>
