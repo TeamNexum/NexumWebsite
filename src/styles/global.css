@@ -120,6 +120,7 @@ h3 {
 
 p {
   text-wrap: pretty;
+  text-shadow: 1px 1px 0 #000; /* ombre pixel dure, jamais de flou */
 }
 
 .wrap {
@@ -177,16 +178,30 @@ p {
   bottom: 0;
 }
 
+/* Le ciel reste visible, mais voilé sous le texte : la Voie lactée est la plus claire là où l'on lit. */
 .section {
   padding-block: clamp(64px, 9vw, 112px);
   border-top: 1px dashed var(--line-strong);
+  background: rgb(0 0 0 / 0.55);
 }
 
 .sec-head {
+  position: relative;
+  isolation: isolate;
   display: grid;
   gap: 18px;
   max-width: 760px;
   margin-bottom: clamp(32px, 5vw, 56px);
+}
+
+/* Voile local derrière l'en-tête de section, qui se fond dans le ciel sur les bords. */
+.sec-head::before {
+  content: '';
+  position: absolute;
+  inset: -40px -80px -30px -60px;
+  z-index: -1;
+  background: radial-gradient(ellipse at 40% 50%, rgb(0 0 0 / 0.7), transparent 72%);
+  pointer-events: none;
 }
 
 .sec-head p:not(.lab) {
