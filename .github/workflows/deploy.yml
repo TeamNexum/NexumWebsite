@@ -34,9 +34,28 @@ jobs:
         with:
           path: dist
 
+  # Tests de bout en bout (formulaire, langues, démo, accessibilité) sur un build à part avec un faux point d'accès :
+  # rien n'est envoyé à un vrai service. Une panne bloque le déploiement.
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm test
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: test-results
+          path: test-results/
+
   deploy:
     if: github.event_name != 'pull_request'
-    needs: build
+    needs: [build, test]
     runs-on: ubuntu-latest
     environment:
       name: github-pages

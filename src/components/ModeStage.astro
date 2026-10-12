@@ -32,6 +32,10 @@ const strings = { ...t, kinds: dict[lang].kinds, decimal: dict[lang].decimal };
     <div class="deck-h lab">
       <span>{t.browse}</span>
       <span class="st">
+        <button type="button" class="snd" data-sound aria-pressed="false" aria-label={t.soundLabel}>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"></path><path class="w" d="M16 9l4 6M20 9l-4 6"></path><path class="v" d="M16 8c2 2 2 6 0 8M19 5c4 4 4 10 0 14"></path></svg>
+          <span data-snd-label>{t.soundOff}</span>
+        </button>
         <button type="button" data-prev aria-label={t.prev}>←</button>
         <button type="button" data-next aria-label={t.next}>→</button>
       </span>
@@ -93,6 +97,9 @@ const strings = { ...t, kinds: dict[lang].kinds, decimal: dict[lang].decimal };
           <span class="bx" aria-hidden="true"></span>
           <span>{t.fail}</span>
         </label>
+        <p class="keys" aria-hidden="true">
+          <kbd>←</kbd><kbd>→</kbd> {t.keysBrowse} · <kbd>Enter</kbd> {t.keysLaunch}
+        </p>
       </div>
     </div>
 
@@ -113,6 +120,7 @@ const strings = { ...t, kinds: dict[lang].kinds, decimal: dict[lang].decimal };
 
 <script>
   import { createGalaxy, type Tint } from '../scripts/galaxy';
+  import { sfx } from '../scripts/sound';
 
   type Step = { kind: string; label: string; detail: string; value: string };
   type Mode = { id: string; name: string; icon: string; tint: Tint; desc: string; trigger: string; steps: Step[] };
@@ -386,7 +394,21 @@ const strings = { ...t, kinds: dict[lang].kinds, decimal: dict[lang].decimal };
       sel = (i + modes.length) % modes.length;
       run++;
       show(true);
+      sfx.pick();
     }
+
+    /* ---------- son : coupé par défaut, activé par le bouton de l'en-tête ---------- */
+    const sndBtn = $<HTMLButtonElement>('[data-sound]');
+    const sndLabel = $('[data-snd-label]');
+    const renderSound = () => {
+      sndBtn.setAttribute('aria-pressed', String(sfx.enabled));
+      sndLabel.textContent = sfx.enabled ? T.soundOn! : T.soundOff!;
+    };
+    sndBtn.addEventListener('click', () => {
+      sfx.toggle();
+      renderSound();
+    });
+    renderSound();
 
     list.addEventListener('click', (e) => {
       const b = (e.target as HTMLElement).closest<HTMLElement>('.cd');
@@ -438,8 +460,9 @@ const strings = { ...t, kinds: dict[lang].kinds, decimal: dict[lang].decimal };
       show(true);
 
       const lis = [...stepsEl.querySelectorAll('li')];
-      const paint = (k: number) => {
-        const bad = k - 1 === failAt;
+      const paint = (k: number, silent = false) => {
+        const bad = failAt >= 0 && k - 1 === failAt;
+        if (k > 0 && !silent) sfx.step(k - 1, bad);
         const li = lis[k];
         li?.classList.add(bad ? 'fail' : 'on');
         li?.querySelector('.ic')?.classList.toggle('on', !bad);
@@ -451,7 +474,8 @@ const strings = { ...t, kinds: dict[lang].kinds, decimal: dict[lang].decimal };
         l.classList.remove('on');
         l.querySelector('.ic')?.classList.remove('on');
       });
-      if (RM) lis.forEach((_, k) => paint(k));
+      sfx.start();
+      if (RM) lis.forEach((_, k) => paint(k, true));
       else {
         constel(m, false, true);
         lis.forEach((_, k) => setTimeout(() => id === run && paint(k), 300 * k));
@@ -465,6 +489,7 @@ const strings = { ...t, kinds: dict[lang].kinds, decimal: dict[lang].decimal };
       logAdd(T.tagRun!, 'run', fmt(T.run!, { name: m.name }));
       m.steps.forEach((_, i) => (RM ? line(i) : setTimeout(() => line(i), 300 * (i + 1))));
       const done = () => {
+        if (id === run) sfx.done(failAt < 0);
         if (failAt >= 0) {
           logAdd(T.tagSys!, '', fmt(T.doneFail!, { name: m.name, ok: n - 1, n }));
           logAdd(T.tagSys!, '', T.retry!);
@@ -523,14 +548,18 @@ const strings = { ...t, kinds: dict[lang].kinds, decimal: dict[lang].decimal };
     });
     for (const t of ['pointerup', 'pointerleave', 'pointercancel', 'blur']) go.addEventListener(t, holdEnd);
     go.addEventListener('contextmenu', (e) => e.preventDefault());
+    // Au clavier, pas de geste à tenir : Entrée ou Espace active tout de suite.
     go.addEventListener('keydown', (e) => {
       if ((e.key === 'Enter' || e.key === ' ') && !e.repeat) {
         e.preventDefault();
-        holdBegin();
+        activate();
       }
     });
-    go.addEventListener('keyup', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') holdEnd();
+    // Les chiffres 1 à 4 choisissent un profil quand le focus est dans la démo (hors champ de saisie).
+    root.addEventListener('keydown', (e) => {
+      if (e.altKey || e.ctrlKey || e.metaKey || (e.target as HTMLElement).closest('input, textarea')) return;
+      const n = Number(e.key);
+      if (Number.isInteger(n) && n >= 1 && n <= modes.length) pick(n - 1);
     });
 
     /* ---------- liaisons, redimensionnement, parallaxe ---------- */
@@ -635,6 +664,74 @@ const strings = { ...t, kinds: dict[lang].kinds, decimal: dict[lang].decimal };
     color: #000;
   }
 
+  /* Bouton de son : pictogramme + état, en capitales Silkscreen. Plein quand le son est actif. */
+  .stg .deck-h .snd {
+    grid-auto-flow: column;
+    gap: 8px;
+    width: auto;
+    margin-right: 6px;
+    padding: 0 12px;
+    font: 700 10px var(--font-label);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .stg .snd {
+    white-space: nowrap;
+  }
+
+  /* Petit écran : pictogramme seul (le nom reste dans aria-label, l'état se lit au pictogramme barré ou non). */
+  @media (max-width: 560px) {
+    .stg .deck-h .snd {
+      width: 32px;
+      padding: 0;
+    }
+
+    .stg .snd [data-snd-label] {
+      display: none;
+    }
+  }
+
+  .stg .snd svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5;
+    stroke-linecap: square;
+    stroke-linejoin: miter;
+  }
+
+  .stg .snd .v,
+  .stg .snd[aria-pressed='true'] .w {
+    display: none;
+  }
+
+  .stg .snd[aria-pressed='true'] .v {
+    display: inline;
+  }
+
+  .stg .deck-h .snd[aria-pressed='true'] {
+    background: #fff;
+    color: #000;
+  }
+
+  .stg .keys {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--dim);
+  }
+
+  @media (pointer: coarse) {
+    .stg .keys {
+      display: none;
+    }
+  }
+
   .stg .rowc {
     display: flex;
     gap: 10px;
@@ -669,7 +766,7 @@ const strings = { ...t, kinds: dict[lang].kinds, decimal: dict[lang].decimal };
     text-align: left;
     background: rgb(255 255 255 / 0.03);
     border: 1px solid var(--line);
-    opacity: 0.55;
+    opacity: 0.8;
     transition: transform 0.2s, box-shadow 0.25s, border-color 0.2s, background 0.2s, width 0.28s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.25s;
   }
 
@@ -1209,7 +1306,7 @@ const strings = { ...t, kinds: dict[lang].kinds, decimal: dict[lang].decimal };
     bottom: 16px;
     right: 20px;
     font-size: 10px;
-    color: #777;
+    color: var(--dim);
   }
 
   /* ---------- infos du profil + barre de commande ---------- */
@@ -1528,7 +1625,7 @@ const strings = { ...t, kinds: dict[lang].kinds, decimal: dict[lang].decimal };
     right: 12px;
     font: 700 10px var(--font-label);
     letter-spacing: 0.1em;
-    color: #666;
+    color: var(--dim);
   }
 
   .stg .pipe .ic {
@@ -1553,7 +1650,7 @@ const strings = { ...t, kinds: dict[lang].kinds, decimal: dict[lang].decimal };
     font: 700 10px var(--font-label);
     font-style: normal;
     letter-spacing: 0.1em;
-    color: #777;
+    color: var(--dim);
   }
 
   .stg .pipe li.on {
@@ -1616,7 +1713,7 @@ const strings = { ...t, kinds: dict[lang].kinds, decimal: dict[lang].decimal };
   .stg .ln time {
     flex: none;
     min-width: 8ch;
-    color: #6a6a74;
+    color: var(--dim);
   }
 
   .stg .ln .tg {
@@ -1716,6 +1813,11 @@ const strings = { ...t, kinds: dict[lang].kinds, decimal: dict[lang].decimal };
 
     .stg .pipe li::after {
       display: none;
+    }
+
+    /* Au-dessus de la barre « Rejoindre la bêta » fixée en bas d'écran. */
+    .stg .toast {
+      bottom: 84px;
     }
   }
 </style>

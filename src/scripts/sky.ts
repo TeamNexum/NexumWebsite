@@ -136,8 +136,22 @@ export function initSky(wrap: HTMLElement, sky: HTMLCanvasElement, twinkle: HTML
     if (!document.hidden) tick();
   }, 420);
   if (matchMedia('(pointer: fine)').matches) {
-    addEventListener('mousemove', (e) => {
-      wrap.style.transform = `translate(${(-(e.clientX / innerWidth - 0.5) * 20).toFixed(1)}px,${(-(e.clientY / innerHeight - 0.5) * 14).toFixed(1)}px)`;
-    });
+    // Un seul calcul par image affichée, même si la souris envoie plus d'événements.
+    let frame = 0;
+    let mx = 0;
+    let my = 0;
+    addEventListener(
+      'mousemove',
+      (e) => {
+        mx = e.clientX;
+        my = e.clientY;
+        if (frame) return;
+        frame = requestAnimationFrame(() => {
+          frame = 0;
+          wrap.style.transform = `translate(${(-(mx / innerWidth - 0.5) * 20).toFixed(1)}px,${(-(my / innerHeight - 0.5) * 14).toFixed(1)}px)`;
+        });
+      },
+      { passive: true },
+    );
   }
 }

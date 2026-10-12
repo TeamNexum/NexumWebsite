@@ -30,7 +30,7 @@ const messages = {
 
 <section class="section beta" id="beta">
   <div class="wrap inner">
-    <div class="intro">
+    <div class="intro" data-reveal>
       <p class="lab">{t.lab}</p>
       <h2>{title ?? t.title}</h2>
       <p class="lead">
@@ -38,7 +38,7 @@ const messages = {
       </p>
     </div>
 
-    <form class="form panel" data-waitlist data-endpoint={endpoint} data-messages={JSON.stringify(messages)} novalidate>
+    <form class="form panel" data-reveal style="--i:1" data-waitlist data-endpoint={endpoint} data-messages={JSON.stringify(messages)} novalidate>
       <div class="fields" data-fields>
         <input type="hidden" name="segment" value={segment} />
         <input type="hidden" name="lang" value={lang} />

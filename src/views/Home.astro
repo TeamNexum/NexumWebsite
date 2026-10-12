@@ -4,6 +4,7 @@ import Base from '../layouts/Base.astro';
 import Hero from '../components/Hero.astro';
 import ModeStage from '../components/ModeStage.astro';
 import Waitlist from '../components/Waitlist.astro';
+import StickyCta from '../components/StickyCta.astro';
 import { icons } from '../data/icons';
 import { getModes, getSegments, site, team } from '../data/site';
 import { dict, fmt, type Lang } from '../i18n';
@@ -41,14 +42,14 @@ const num = (i: number) => String(i + 1).padStart(2, '0');
 
   <section class="section" id="problem">
     <div class="wrap">
-      <div class="sec-head">
+      <div class="sec-head" data-reveal>
         <p class="lab">{t.problem.lab}</p>
         <h2>{t.problem.title}</h2>
         <p>{t.problem.intro}</p>
       </div>
       <div class="cards">
         {t.problem.cards.map((p, i) => (
-          <article class="panel card">
+          <article class="panel card" data-reveal style={`--i:${i}`}>
             <span class="big">{num(i)}</span>
             <h3>{p.title}</h3>
             <p>{p.text}</p>
@@ -60,14 +61,14 @@ const num = (i: number) => String(i + 1).padStart(2, '0');
 
   <section class="section" id="how-it-works">
     <div class="wrap">
-      <div class="sec-head">
+      <div class="sec-head" data-reveal>
         <p class="lab">{t.how.lab}</p>
         <h2>{t.how.title}</h2>
         <p>{t.how.intro}</p>
       </div>
       <ol class="flow">
         {t.how.steps.map((s, i) => (
-          <li>
+          <li data-reveal style={`--i:${i}`}>
             <span class="pn">{num(i)}</span>
             <span class="ic on"><svg class="i" viewBox="0 0 24 24" aria-hidden="true" set:html={stepIcons[i]} /></span>
             <h3>{s.title}</h3>
@@ -80,29 +81,29 @@ const num = (i: number) => String(i + 1).padStart(2, '0');
 
   <section class="section" id="modes">
     <div class="wrap">
-      <div class="sec-head">
+      <div class="sec-head" data-reveal>
         <p class="lab">{t.modesSection.lab}</p>
         <h2>{t.modesSection.title}</h2>
         <p>{t.modesSection.intro}</p>
       </div>
-      <ModeStage lang={lang} />
+      <div data-reveal><ModeStage lang={lang} /></div>
       <p class="note">{t.modesSection.note}</p>
     </div>
   </section>
 
   <section class="section" id="integrations">
     <div class="wrap">
-      <div class="sec-head">
+      <div class="sec-head" data-reveal>
         <p class="lab">{t.integrations.lab}</p>
         <h2>{t.integrations.title}</h2>
         <p>{t.integrations.intro}</p>
       </div>
       <div class="integ">
-        <div class="panel box">
+        <div class="panel box" data-reveal>
           <p class="head"><span class="tag">{t.integrations.availableTag}</span><span>{t.integrations.availableNote}</span></p>
           <ul class="chips">{t.integrations.available.map((i) => <li>{i}</li>)}</ul>
         </div>
-        <div class="panel box">
+        <div class="panel box" data-reveal style="--i:1">
           <p class="head"><span class="tag plain">{t.integrations.plannedTag}</span><span>{t.integrations.plannedNote}</span></p>
           <ul class="chips planned">{t.integrations.planned.map((i) => <li>{i}</li>)}</ul>
         </div>
@@ -112,11 +113,11 @@ const num = (i: number) => String(i + 1).padStart(2, '0');
 
   <section class="section" id="comparison">
     <div class="wrap">
-      <div class="sec-head">
+      <div class="sec-head" data-reveal>
         <p class="lab">{t.comparison.lab}</p>
         <h2>{t.comparison.title}</h2>
       </div>
-      <div class="panel table-wrap">
+      <div class="panel table-wrap" data-reveal tabindex="0" role="region" aria-label={t.comparison.title}>
         <table>
           <thead>
             <tr>{t.comparison.headers.map((h) => <th scope="col">{h}</th>)}</tr>
@@ -138,13 +139,13 @@ const num = (i: number) => String(i + 1).padStart(2, '0');
 
   <section class="section" id="use-cases">
     <div class="wrap">
-      <div class="sec-head">
+      <div class="sec-head" data-reveal>
         <p class="lab">{t.audience.lab}</p>
         <h2>{t.audience.title}</h2>
       </div>
       <div class="cards">
         {segments.map((s, i) => (
-          <a class="panel card seg" href={paths.segment(lang, s.slug)}>
+          <a class="panel card seg" href={paths.segment(lang, s.slug)} data-reveal style={`--i:${i}`}>
             <span class="big">{num(i)}</span>
             <p class="lab">{s.label}</p>
             <h3>{s.title}</h3>
@@ -157,14 +158,14 @@ const num = (i: number) => String(i + 1).padStart(2, '0');
 
   <section class="section" id="roadmap">
     <div class="wrap">
-      <div class="sec-head">
+      <div class="sec-head" data-reveal>
         <p class="lab">{t.roadmap.lab}</p>
         <h2>{t.roadmap.title}</h2>
         <p>{fmt(t.roadmap.intro, { n: team.length, names: team.join(', ') })}</p>
       </div>
       <ol class="roadmap">
         {t.roadmap.items.map((r, i) => (
-          <li class={i === 0 ? 'now' : ''}>
+          <li class={i === 0 ? 'now' : ''} data-reveal style={`--i:${i}`}>
             <p class="when">{r.when}</p>
             <p>{r.what}</p>
           </li>
@@ -175,11 +176,11 @@ const num = (i: number) => String(i + 1).padStart(2, '0');
 
   <section class="section" id="faq">
     <div class="wrap faq">
-      <div class="sec-head">
+      <div class="sec-head" data-reveal>
         <p class="lab">{t.faq.lab}</p>
         <h2>{t.faq.title}</h2>
       </div>
-      <div class="qa">
+      <div class="qa" data-reveal>
         {t.faq.items.map((f) => (
           <details>
             <summary>{f.q}</summary>
@@ -191,6 +192,7 @@ const num = (i: number) => String(i + 1).padStart(2, '0');
   </section>
 
   <Waitlist lang={lang} />
+  <StickyCta lang={lang} />
 </Base>
 
 <style>
@@ -216,7 +218,7 @@ const num = (i: number) => String(i + 1).padStart(2, '0');
   .mode-lines i {
     font-style: normal;
     font-size: 9px;
-    color: #666;
+    color: var(--dim);
   }
 
   .mode-lines strong {
@@ -276,7 +278,7 @@ const num = (i: number) => String(i + 1).padStart(2, '0');
 
   .big {
     font: 28px/1 var(--font-title);
-    color: rgb(255 255 255 / 0.2);
+    color: #6a6a76;
   }
 
   .seg {
@@ -343,7 +345,7 @@ const num = (i: number) => String(i + 1).padStart(2, '0');
     right: 16px;
     font: 700 10px var(--font-label);
     letter-spacing: 0.1em;
-    color: #666;
+    color: var(--dim);
   }
 
   .flow .ic {
@@ -468,15 +470,20 @@ const num = (i: number) => String(i + 1).padStart(2, '0');
     background: #fff;
   }
 
-  tr.us th,
-  tr.us td,
-  tr.us small {
+  /* `tbody` en tête : sans lui, la règle générale `tbody th small` (gris) l'emporte sur le noir de la ligne blanche. */
+  tbody tr.us th,
+  tbody tr.us td,
+  tbody tr.us small {
     color: #000;
     font-weight: 700;
   }
 
-  tr.us small {
+  tbody tr.us small {
     font-weight: 400;
+  }
+
+  .table-wrap:focus-visible {
+    outline-offset: -3px; /* le cadre cranté découperait un contour extérieur */
   }
 
   /* ---------- feuille de route ---------- */

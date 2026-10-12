@@ -5,9 +5,10 @@ import Base from '../layouts/Base.astro';
 import Hero from '../components/Hero.astro';
 import ModeStage from '../components/ModeStage.astro';
 import Waitlist from '../components/Waitlist.astro';
+import StickyCta from '../components/StickyCta.astro';
 import { getModes, getSegments, type SegmentSlug } from '../data/site';
 import { dict, type Lang } from '../i18n';
-import { paths } from '../i18n/routes';
+import { paths, segmentSlugs } from '../i18n/routes';
 
 interface Props {
   lang: Lang;
@@ -28,6 +29,7 @@ const tint = (getModes(lang).find((m) => m.id === segment.mode) ?? getModes(lang
   title={segment.metaTitle}
   description={segment.lead}
   tint={tint}
+  image={`og/${segmentSlugs.en[slug]}-${lang}.jpeg`}
 >
   <Hero eyebrow={`Nexum / ${segment.label}`} tint={tint}>
     <Fragment slot="title">{segment.title}</Fragment>
@@ -41,13 +43,13 @@ const tint = (getModes(lang).find((m) => m.id === segment.mode) ?? getModes(lang
 
   <section class="section">
     <div class="wrap">
-      <div class="sec-head">
+      <div class="sec-head" data-reveal>
         <p class="lab">{s.whyLab}</p>
         <h2>{s.whyTitle}</h2>
       </div>
       <div class="cards">
         {segment.pains.map((p, i) => (
-          <article class="panel card">
+          <article class="panel card" data-reveal style={`--i:${i}`}>
             <span class="big">{String(i + 1).padStart(2, '0')}</span>
             <h3>{p.title}</h3>
             <p>{p.text}</p>
@@ -59,16 +61,17 @@ const tint = (getModes(lang).find((m) => m.id === segment.mode) ?? getModes(lang
 
   <section class="section" id="demo">
     <div class="wrap">
-      <div class="sec-head">
+      <div class="sec-head" data-reveal>
         <p class="lab">{s.demoLab}</p>
         <h2>{s.demoTitle}</h2>
         <p>{s.demoIntro}</p>
       </div>
-      <ModeStage lang={lang} initial={segment.mode} />
+      <div data-reveal><ModeStage lang={lang} initial={segment.mode} /></div>
     </div>
   </section>
 
   <Waitlist lang={lang} segment={segment.slug} title={s.waitlistTitle} />
+  <StickyCta lang={lang} />
 </Base>
 
 <style>
@@ -117,6 +120,6 @@ const tint = (getModes(lang).find((m) => m.id === segment.mode) ?? getModes(lang
 
   .big {
     font: 28px/1 var(--font-title);
-    color: rgb(255 255 255 / 0.2);
+    color: #6a6a76;
   }
 </style>

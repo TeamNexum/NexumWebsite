@@ -98,7 +98,7 @@ export const fr: Dict = {
   modesSection: {
     lab: '03 / Modes',
     title: 'Activez un mode.',
-    intro: 'Choisissez un profil, puis maintenez « Activer ». Cochez la panne pour voir comment Nexum vous prévient quand une action échoue.',
+    intro: 'Choisissez un profil, puis maintenez « Activer » (ou appuyez sur Entrée). Cochez la panne pour voir comment Nexum vous prévient quand une action échoue.',
     note: 'Illustration. Les étapes reprennent des actions que le prototype sait déjà faire ou qui sont prévues.',
   },
 
@@ -213,7 +213,7 @@ export const fr: Dict = {
     painPlaceholder: 'Ex. : je rouvre les mêmes 6 applis chaque matin…',
     interview: 'OK pour un entretien de 20 minutes avec l’équipe (visio ou message).',
     consent: 'J’accepte que Nexum garde mon e-mail et mes réponses pour me recontacter au sujet de la bêta.',
-    learnMore: 'En savoir plus',
+    learnMore: 'Lire la politique de confidentialité',
     submit: 'Rejoindre la bêta',
     soon: 'Inscriptions bientôt ouvertes',
     checkEmail: 'Vérifiez votre adresse e-mail.',
@@ -233,7 +233,7 @@ export const fr: Dict = {
     whyTitle: 'Ce que ça change pour vous.',
     demoLab: '02 / Essai',
     demoTitle: 'Votre mode, étape par étape.',
-    demoIntro: 'Maintenez « Activer ». Chaque action affiche son résultat, même quand quelque chose échoue.',
+    demoIntro: 'Maintenez « Activer » (ou appuyez sur Entrée). Chaque action affiche son résultat, même quand quelque chose échoue.',
     waitlistTitle: 'Rejoignez la bêta.',
   },
 
@@ -377,6 +377,11 @@ export const fr: Dict = {
     activatedFail: '{name} activé · 1 échec',
     srSteps: '{name}, {n} étapes',
     noscript: 'Cette démo demande JavaScript.',
+    soundLabel: 'Effets sonores',
+    soundOff: 'Son coupé',
+    soundOn: 'Son actif',
+    keysBrowse: 'parcourir',
+    keysLaunch: 'activer',
   },
 
   privacy: {

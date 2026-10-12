@@ -74,6 +74,12 @@ const links = [
     mark();
   }
 
+  // Sur une page de cible, le bouton « Rejoindre la bêta » mène au formulaire de cette page (sinon l'inscription
+  // serait comptée pour l'accueil et non pour la cible).
+  if (document.getElementById('beta')) {
+    for (const a of document.querySelectorAll<HTMLAnchorElement>('.top a.cta')) a.setAttribute('href', '#beta');
+  }
+
   // Le choix de langue est gardé dans le navigateur : l'anglais est la langue par défaut, un visiteur qui choisit le français y revient.
   for (const link of document.querySelectorAll<HTMLAnchorElement>('.lang a[data-lang]')) {
     link.addEventListener('click', () => {
@@ -167,7 +173,7 @@ const links = [
   .tabs i {
     font-style: normal;
     font-size: 9px;
-    color: #666;
+    color: var(--dim);
     transition: color 0.2s;
   }
 
@@ -300,7 +306,7 @@ const links = [
 
   .sheet a i {
     font-style: normal;
-    color: #666;
+    color: var(--dim);
   }
 
   .sheet a:hover {

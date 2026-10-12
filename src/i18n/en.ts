@@ -96,7 +96,7 @@ export const en = {
   modesSection: {
     lab: '03 / Modes',
     title: 'Activate a mode.',
-    intro: 'Pick a profile, then hold “Activate”. Tick the failure box to see how Nexum warns you when an action fails.',
+    intro: 'Pick a profile, then hold “Activate” (or press Enter). Tick the failure box to see how Nexum warns you when an action fails.',
     note: 'Illustration. The steps use actions the prototype can already do, or that are planned.',
   },
 
@@ -211,7 +211,7 @@ export const en = {
     painPlaceholder: 'E.g. I reopen the same 6 apps every morning…',
     interview: 'OK for a 20-minute interview with the team (video call or message).',
     consent: 'I agree that Nexum keeps my email and answers to contact me about the beta.',
-    learnMore: 'Learn more',
+    learnMore: 'Read the privacy policy',
     submit: 'Join the beta',
     soon: 'Sign-ups opening soon',
     checkEmail: 'Check your email address.',
@@ -231,7 +231,7 @@ export const en = {
     whyTitle: 'What it changes for you.',
     demoLab: '02 / Try it',
     demoTitle: 'Your mode, step by step.',
-    demoIntro: 'Hold “Activate”. Every action shows its result, even when something fails.',
+    demoIntro: 'Hold “Activate” (or press Enter). Every action shows its result, even when something fails.',
     waitlistTitle: 'Join the beta.',
   },
 
@@ -375,6 +375,11 @@ export const en = {
     activatedFail: '{name} activated · 1 failure',
     srSteps: '{name}, {n} steps',
     noscript: 'This demo needs JavaScript.',
+    soundLabel: 'Sound effects',
+    soundOff: 'Sound off',
+    soundOn: 'Sound on',
+    keysBrowse: 'browse',
+    keysLaunch: 'activate',
   },
 
   privacy: {

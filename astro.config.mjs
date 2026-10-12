@@ -10,6 +10,8 @@ const base = process.env.BASE_PATH ?? '/NexumWebsite';
 export default defineConfig({
   site,
   base,
+  // Les tests (npm test) construisent le site ailleurs que dans dist/, avec un faux point d'accès pour le formulaire.
+  outDir: process.env.OUT_DIR ?? 'dist',
   trailingSlash: 'ignore',
   // L'anglais est à la racine, le français sous /fr/.
   // Les anciennes adresses (site d'abord uniquement en français) redirigent vers leur équivalent français.

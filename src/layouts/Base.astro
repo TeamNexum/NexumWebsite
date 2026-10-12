@@ -21,9 +21,12 @@ interface Props {
   description?: string;
   /** Teinte de profil de la page (une seule par page, guide de marque). Violet « Gaming » par défaut. */
   tint?: Tint;
+  /** Aperçu de partage (réseaux sociaux), chemin sous public/. Par défaut : l'aperçu de l'accueil dans la langue de la page. */
+  image?: string;
 }
 
 const { lang, alt, title, description, tint = [150, 90, 255] } = Astro.props;
+const image = Astro.props.image ?? `og/home-${lang}.jpeg`;
 const t = dict[lang];
 const fullTitle = title ? `${title} · Nexum` : `Nexum · ${t.meta.tagline}`;
 const desc = description ?? t.meta.description;
@@ -49,9 +52,27 @@ const abs = (path: string) => new URL(path, Astro.site).href;
     <meta property="og:description" content={desc} />
     <meta property="og:url" content={canonical} />
     <meta property="og:locale" content={t.locale} />
-    <meta property="og:image" content={abs(url('og.png'))} />
+    <meta property="og:image" content={abs(url(image))} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={fullTitle} />
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={desc} />
+    <meta name="twitter:image" content={abs(url(image))} />
     <meta name="theme-color" content="#000000" />
+    <script is:inline>
+      // Apparition au défilement : activée seulement avec JavaScript et sans « réduire les animations ».
+      // Si le script de page n'a pas démarré au bout de 3 s, tout redevient visible.
+      (function () {
+        var d = document.documentElement;
+        if (!('IntersectionObserver' in window) || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        d.classList.add('rv');
+        setTimeout(function () {
+          if (!d.dataset.rvReady) d.classList.remove('rv');
+        }, 3000);
+      })();
+    </script>
     {
       lang === 'en' && (
         <script is:inline define:vars={{ fr: alt.fr }}>
@@ -73,6 +94,9 @@ const abs = (path: string) => new URL(path, Astro.site).href;
       </main>
       <Footer lang={lang} />
     </div>
+    <script>
+      import '../scripts/reveal';
+    </script>
   </body>
 </html>
 

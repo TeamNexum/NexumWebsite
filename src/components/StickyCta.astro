@@ -1,0 +1,94 @@
+---
+// Barre « Rejoindre la bêta » fixée en bas d'écran, sur mobile seulement (l'en-tête porte déjà le bouton sur grand écran).
+// Elle apparaît quand la couverture est passée, et se retire devant le formulaire et le pied de page.
+import { dict, type Lang } from '../i18n';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = dict[lang];
+---
+
+<div class="cta-bar" data-cta-bar hidden>
+  <p>{t.meta.stage}</p>
+  <a class="btn btn-primary" href="#beta">{t.nav.cta}</a>
+</div>
+
+<script>
+  const bar = document.querySelector<HTMLElement>('[data-cta-bar]');
+  const hero = document.querySelector('.hero');
+  const covers = [document.getElementById('beta'), document.querySelector('footer')].filter((e): e is HTMLElement => !!e);
+
+  if (bar && hero && covers.length && 'IntersectionObserver' in window) {
+    bar.hidden = false;
+    let heroOn = true;
+    const hidden = new Set<Element>();
+    const update = () => bar.classList.toggle('on', !heroOn && hidden.size === 0);
+    new IntersectionObserver(([e]) => {
+      heroOn = !!e?.isIntersecting;
+      update();
+    }).observe(hero);
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries) e.isIntersecting ? hidden.add(e.target) : hidden.delete(e.target);
+      update();
+    });
+    covers.forEach((c) => io.observe(c));
+  }
+</script>
+
+<style>
+  .cta-bar {
+    display: none;
+  }
+
+  @media (max-width: 900px) {
+    .cta-bar {
+      position: fixed;
+      inset: auto 0 0;
+      z-index: 30;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 10px var(--gutter) calc(10px + env(safe-area-inset-bottom));
+      background: rgb(0 0 0 / 0.92);
+      border-top: 1px solid var(--line-strong);
+      transform: translateY(100%);
+      visibility: hidden;
+      transition: transform 0.2s steps(4), visibility 0.2s;
+    }
+
+    .cta-bar[hidden] {
+      display: none;
+    }
+
+    .cta-bar.on {
+      transform: none;
+      visibility: visible;
+    }
+
+    p {
+      font: 700 10px/1.4 var(--font-label);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--dim);
+    }
+
+    .btn {
+      flex: none;
+      min-height: 44px;
+    }
+  }
+
+  @media (max-width: 380px) {
+    p {
+      display: none;
+    }
+
+    .btn {
+      flex: 1;
+    }
+  }
+</style>

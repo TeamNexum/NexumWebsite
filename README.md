@@ -21,6 +21,14 @@ npm run build      # astro check + build dans dist/
 npm run preview
 ```
 
+## Tests
+
+```bash
+npm test           # build à part (dist-test/) avec un faux point d'accès de formulaire, puis tests Playwright
+```
+
+Plus de 80 tests, sur ordinateur et sur mobile (Chromium) : toutes les pages (langue, un seul `h1`, pas de défilement horizontal), **accessibilité avec axe-core** (WCAG 2.1 A et AA, dont les contrastes), sélecteur de langue et redirections, formulaire de bout en bout (validation, succès, 422, erreur serveur, double envoi, champ piège ; les envois sont interceptés, rien ne part vraiment), démo (clavier, panne simulée, son coupé par défaut) et barre mobile. Au premier lancement : `npx playwright install chromium`. Le workflow GitHub les exécute à chaque push et pull request, et **un échec bloque le déploiement**.
+
 ## Configuration
 
 | Variable | Rôle |
@@ -54,13 +62,24 @@ src/
   data/site.ts          données sans texte : teintes et icônes des modes, ordre des étapes, segments, équipe
   data/icons.ts         icônes de la charte (24 × 24, contours de 1,5 px)
   layouts/Base.astro    <head> (hreflang, canonical), ciel de fond, en-tête et pied de page
-  scripts/              sky.ts (Voie lactée pixel), galaxy.ts (galaxie pixel animée)
+  scripts/              sky.ts (Voie lactée pixel), galaxy.ts (galaxie pixel animée), sound.ts (effets sonores de la démo,
+                        synthétisés), reveal.ts (apparition des sections au défilement)
   components/           Header (+ sélecteur de langue), Footer, Sky, Mark (logo), Hero (couverture),
-                        ModeStage (démo : constellation, « maintenir pour lancer », journal), Waitlist (formulaire)
+                        ModeStage (démo : constellation, « maintenir pour lancer », journal, son), Waitlist (formulaire),
+                        StickyCta (barre « Rejoindre la bêta » sur mobile)
   views/                Home, Segment, Privacy : une seule version, appelée avec `lang="en"` ou `lang="fr"`
   pages/                index, for/[segment], privacy (anglais) ; fr/index, fr/pour/[segment], fr/confidentialite (français) ; 404
   styles/global.css     tokens du guide, cadre cranté, étiquettes, boutons
+tests/                  Playwright : site.spec (pages, axe, langues), form.spec (formulaire), demo.spec (démo, son)
+public/og/              aperçus de partage (1200 × 630), un par page et par langue : home|gamers|streamers|remote-work-{en,fr}.jpeg
 ```
+
+**Comportements à connaître :**
+
+- *Apparition au défilement* : un élément marqué `data-reveal` apparaît par paliers (`steps()`) en entrant à l'écran. Rien n'est caché sans JavaScript ni avec « réduire les animations » (la classe `rv` sur `<html>` n'est posée que si les deux sont réunis, et un filet de sécurité la retire après 3 s si le script n'a pas démarré).
+- *Démo* : au clavier, Entrée ou Espace sur « Activer » lance tout de suite ; ← → parcourent les profils, 1 à 4 en choisissent un. Le son est **coupé par défaut** ; le bouton « Son » l'active (choix gardé dans `localStorage`, clé `nexum-sound`). Les sons sont synthétisés (Web Audio), aucun fichier.
+- *Barre mobile* : apparaît après la couverture, disparaît devant le formulaire et le pied de page. Sur une page de cible, les boutons « Rejoindre la bêta » mènent au formulaire de **cette** page, pour que l'inscription compte pour la bonne cible.
+- *Aperçus de partage* : pas générés au build. Pour les refaire après un changement de la couverture, capturer la couverture de chaque page en 1200 × 630 (en-tête masqué) et remplacer les fichiers de `public/og/`.
 
 **Règle de contenu :** ne marquer « disponible » que ce qui marche dans le prototype (`crates/nexum-schema/src/action_types.rs` du dépôt Nexum). Le reste est « prévu ».
 

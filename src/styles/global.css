@@ -347,6 +347,35 @@ svg.i {
   }
 }
 
+/* Apparition au défilement, par paliers (steps) comme le reste des animations : jamais de fondu lisse.
+   Rien n'est caché sans la classe .rv, que le script du <head> pose seulement avec JavaScript et sans « réduire les animations ». */
+.rv [data-reveal]:not(.in) {
+  opacity: 0;
+}
+
+.rv [data-reveal].in {
+  animation: reveal 0.5s steps(5) backwards;
+  animation-delay: calc(var(--i, 0) * 90ms);
+}
+
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media print {
+  .rv [data-reveal] {
+    opacity: 1 !important;
+    animation: none !important;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
